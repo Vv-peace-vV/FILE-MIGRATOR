@@ -1741,6 +1741,34 @@ function applyBoxShadow(){
 }
 
 // ============================================================
+// iframe → 부모창 메시지 수신 + 키보드 단축키
+// ============================================================
+window.addEventListener('message', e => {
+  if(!e.data) return;
+  if(e.data.type === 'fm-select'){
+    selectElement(e.data.editId);
+  } else if(e.data.type === 'fm-key-escape'){
+    if(selectedEditId != null) selectElement(null);
+  }
+});
+
+document.addEventListener('keydown', e => {
+  const ae = document.activeElement;
+  if(ae && /INPUT|TEXTAREA/.test(ae.tagName)) return;
+  
+  if(e.key === 'Escape'){
+    if(selectedEditId != null){
+      selectElement(null);
+      e.preventDefault();
+    }
+  } else if(e.key === 'Tab' && selectedEditId != null){
+    e.preventDefault();
+    const btn = e.shiftKey ? document.getElementById('nav-child') : document.getElementById('nav-parent');
+    if(btn && !btn.disabled) btn.click();
+  }
+});
+
+// ============================================================
 // 초기 실행
 // ============================================================
 
