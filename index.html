@@ -1264,6 +1264,61 @@ function toggleInputPanel(){
   panel.classList.toggle('collapsed');
   btn.textContent = panel.classList.contains('collapsed') ? '▶' : '◀';
 }
+  // ============================================================
+// 디바이스 토글 (웹/태블릿/모바일)
+// ============================================================
+function setDevice(device){
+  const wrap = document.getElementById('preview-wrap');
+  const info = document.getElementById('device-info');
+  // 클래스 교체
+  wrap.classList.remove('web','tablet','mobile');
+  wrap.classList.add(device);
+  // 버튼 활성화 표시
+  document.querySelectorAll('.device-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.device === device);
+  });
+  // 폭 정보 표시
+  const widths = {web:'100%', tablet:'768px', mobile:'375px'};
+  info.textContent = widths[device];
+}
+
+// ============================================================
+// 코드 ↔ 프리뷰 분할선 드래그
+// ============================================================
+(function initSplitDivider(){
+  const divider = document.getElementById('split-divider');
+  if(!divider) return;
+  const split = divider.parentElement;
+  const right = document.querySelector('.split-right');
+  let dragging = false;
+  
+  divider.addEventListener('mousedown', e => {
+    dragging = true;
+    divider.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  
+  document.addEventListener('mousemove', e => {
+    if(!dragging) return;
+    const rect = split.getBoundingClientRect();
+    const rightWidth = rect.right - e.clientX;
+    // 최소/최대 폭 제한
+    const min = 280, max = rect.width - 200;
+    const clamped = Math.max(min, Math.min(max, rightWidth));
+    right.style.width = clamped + 'px';
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if(!dragging) return;
+    dragging = false;
+    divider.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
+
 // ============================================================
 // 초기 실행
 // ============================================================
