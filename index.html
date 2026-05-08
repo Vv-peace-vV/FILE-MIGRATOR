@@ -342,7 +342,10 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
           <button class="effect-btn" onclick="openSubPane('gradient')" disabled>
             <span class="effect-btn-icon">🎨</span>그라데이션
           </button>
-        </div>
+          <button class="effect-btn" onclick="openSubPane('border')" disabled>
+    <span class="effect-btn-icon">🔲</span>테두리
+  </button>
+</div>
 
         <div class="section-title">⚙ 현재 적용된 효과</div>
         <div class="applied-list" id="applied-list">
@@ -506,6 +509,51 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 </div>
 
       </div>
+<!-- 테두리 세부 패널 -->
+<div class="editor-pane" id="pane-border">
+  <div class="sub-pane-header">
+    <button class="back-btn" onclick="closeSubPane()">← 뒤로</button>
+    <span class="sub-pane-title">🔲 테두리</span>
+  </div>
+  
+  <div class="section-title">색상 (투명도 조절 가능)</div>
+  <div id="border-color-picker"></div>
+  
+  <div class="field-row">
+    <span class="field-label">방향</span>
+    <select class="field-select" id="border-side">
+      <option value="all" selected>전체 (border)</option>
+      <option value="top">위 (border-top)</option>
+      <option value="right">오른쪽 (border-right)</option>
+      <option value="bottom">아래 (border-bottom)</option>
+      <option value="left">왼쪽 (border-left)</option>
+    </select>
+  </div>
+  
+  <div class="field-row">
+    <span class="field-label">두께</span>
+    <input type="number" class="field-input" id="border-width" min="1" max="20" value="1" style="width:70px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:11px;border:1px solid #ddd;border-radius:4px;text-align:center">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#666">px</span>
+  </div>
+  
+  <div class="field-row">
+    <span class="field-label">스타일</span>
+    <select class="field-select" id="border-style">
+      <option value="solid" selected>solid (실선)</option>
+      <option value="dashed">dashed (점선)</option>
+      <option value="dotted">dotted (도트)</option>
+      <option value="double">double (이중선)</option>
+    </select>
+  </div>
+  
+  <div class="impact-info">💡 색상 + 방향 + 두께 + 스타일 선택 후 [적용]</div>
+  
+  <div class="action-pair">
+    <button class="btn-success" onclick="applyBorder()">✓ 테두리 적용</button>
+    <button class="btn-success" onclick="removeBorder()" style="background:#ff8787">✗ 테두리 제거</button>
+    <button class="btn-secondary" onclick="closeSubPane()">닫기</button>
+  </div>
+</div>
 
     </div>
   </div>
@@ -774,6 +822,7 @@ function createColorPicker(container, opts){
 let currentSubPane = null;
 let shadowPicker = null;
 let textShadowPicker = null;
+let borderPicker = null;
 let gradStopPickers = [];
 
 function openSubPane(name){
@@ -795,6 +844,11 @@ function openSubPane(name){
   }
   if(name === 'gradient' && gradStopPickers.length === 0){
     initGradientStops();
+  }
+  if(name === 'border' && !borderPicker){
+    borderPicker = createColorPicker(document.getElementById('border-color-picker'), {
+      initial:'#000000', alpha:0.1
+    });
   }
 }
 
@@ -1994,6 +2048,33 @@ function applyGradient(){
   
   showToast('그라데이션 적용! (' + stops.length + '개 색상)');
   closeSubPane();
+}
+function applyBorder(){
+  if(!selectedEditId){ showToast('요소를 먼저 선택하세요!'); return; }
+  if(!borderPicker){ showToast('색상 피커가 준비 안 됐어요'); return; }
+  
+  const rgba = borderPicker.getRgba();
+  const colorStr = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.a})`;
+  
+  const side = document.getElementById('border-side').value;
+  const width = document.getElementById('border-width').value || '1';
+  const style = document.getElementById('border-style').value;
+  
+  const property = side === 'all' ? 'border' : ('border-' + side);
+  const value = `${width}px ${style} ${colorStr}`;
+  
+  applyStyleToSelected({ [property]: value });
+  showToast(`✓ ${property} 적용됨`);
+}
+
+function removeBorder(){
+  if(!selectedEditId){ showToast('요소를 먼저 선택하세요!'); return; }
+  
+  const side = document.getElementById('border-side').value;
+  const property = side === 'all' ? 'border' : ('border-' + side);
+  
+  applyStyleToSelected(property, '');
+  applyStyleToSelected({ [property]: '' });
 }
 // ============================================================
 // ⚡ 단색 배경 (background) 적용
