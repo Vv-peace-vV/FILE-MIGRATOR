@@ -1581,12 +1581,66 @@ function updateAppliedList(el){
   Object.entries(map).forEach(([prop, val]) => {
     const item = document.createElement('div');
     item.className = 'applied-item';
-    const valShort = val.length > 30 ? val.slice(0, 30) + '...' : val;
-    item.innerHTML = `
-      <span class="applied-item-text"><span class="applied-prop">${escapeHTML(prop)}</span>: <span class="applied-val">${escapeHTML(valShort)}</span></span>
-    `;
+    const valShort = val.length > 28 ? val.slice(0, 28) + '...' : val;
+    
+    // 텍스트 부분
+    const textSpan = document.createElement('span');
+    textSpan.className = 'applied-item-text';
+    textSpan.innerHTML = `<span class="applied-prop">${escapeHTML(prop)}</span>: <span class="applied-val">${escapeHTML(valShort)}</span>`;
+    item.appendChild(textSpan);
+    
+    // ✗ 제거 버튼
+    const delBtn = document.createElement('button');
+    delBtn.className = 'applied-item-btn del';
+    delBtn.textContent = '✗';
+    delBtn.title = prop + ' 제거';
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      removeStyleFromSelected(prop);
+    });
+    item.appendChild(delBtn);
+    
     list.appendChild(item);
   });
+}
+
+// ============================================================
+// 효과 제거 (즉시 제거)
+// ============================================================
+function removeStyleFromSelected(prop){
+  if(selectedEditId == null) return;
+  
+  const iframe = document.getElementById('preview-frame');
+  const el = iframe.contentDocument.querySelector('[data-edit-id="' + selectedEditId + '"]');
+  if(!el) return;
+  
+  // 잔여 찌꺼기 방지! 깔끔하게 제거
+  removeStyleProperty(el, prop);
+  
+  // applyStyleToSelected와 같은 방식으로 모든 곳 갱신
+  // (빈 객체로 호출해서 갱신 로직만 돌림)
+  const newHTML = iframe.contentDocument.body.innerHTML;
+  convertedHTML = newHTML.replace(/<script>[\s\S]*?<\/script>/g, '').trim();
+  
+  const codeEl = document.getElementById('output-code');
+  const oldText = codeEl.dataset.original || codeEl.textContent;
+  const headerMatch = oldText.match(/^\/\*[\s\S]*?\*\/\n*/);
+  const header = headerMatch ? headerMatch[0] : '';
+  const cleanLength = stripEditIds(convertedHTML).length;
+  const newHeader = header.replace(/(\* 최종 글자 수: )[\d,]+( chars)/, '$1' + cleanLength.toLocaleString() + '$2');
+  
+  codeEl.dataset.original = newHeader + convertedHTML;
+  
+  const tempConverted = convertedHTML;
+  convertedHTML = stripEditIds(tempConverted);
+  updateOutputCounter();
+  convertedHTML = tempConverted;
+  
+  updateAppliedList(el);
+  highlightInCode(selectedEditId);
+  autoSave();
+  
+  showToast('제거됨: ' + prop);
 }
 
 function escapeHTML(s){
