@@ -1711,47 +1711,34 @@ function applyBoxShadow(){
   const inset = document.getElementById('shadow-inset').checked;
   const blur = document.getElementById('shadow-blur').value;
   
-  let shadowValue = '';
+  // rgba에서 알파만 바꿔주는 헬퍼
+  const withAlpha = (a) => rgba.replace(/,[\d.]+\)$/, ',' + a + ')');
   const insetStr = inset ? 'inset ' : '';
   
-  if(strength === 'weak'){
-    shadowValue = insetStr + '0 0 8px ' + rgba.replace(/,[\d.]+\)$/, ',0.5)');
-  } else if(strength === 'medium'){
-    shadowValue = insetStr + '0 0 12px ' + rgba.replace(/,[\d.]+\)$/, ',0.8)');
-  } else if(strength === 'strong'){
-    shadowValue = insetStr + '0 0 16px ' + rgba.replace(/,[\d.]+\)$/, ',1)');
-  } else if(strength === 'neon'){
-    // 네온 3겹 (콤마로 여러 개 겹치기)
-    const base = rgba.replace(/,[\d.]+\)$/, '');
-    shadowValue = insetStr + '0 0 5px ' + base +
-
-// iframe → 부모창 메시지 수신 (선택)
-window.addEventListener('message', e => {
-  if(!e.data) return;
-  if(e.data.type === 'fm-select'){
-    selectElement(e.data.editId);
-  } else if(e.data.type === 'fm-key-escape'){
-    if(selectedEditId != null) selectElement(null);
-  }
-});
-
-// 키보드 단축키 (Tab=부모, Shift+Tab=자식, ESC=해제)
-document.addEventListener('keydown', e => {
-  // input/textarea에 포커스되어 있으면 무시
-  const ae = document.activeElement;
-  if(ae && /INPUT|TEXTAREA/.test(ae.tagName)) return;
+  let shadowValue = '';
   
-  if(e.key === 'Escape'){
-    if(selectedEditId != null){
-      selectElement(null);
-      e.preventDefault();
-    }
-  } else if(e.key === 'Tab' && selectedEditId != null){
-    e.preventDefault();
-    const btn = e.shiftKey ? document.getElementById('nav-child') : document.getElementById('nav-parent');
-    if(btn && !btn.disabled) btn.click();
+  if(strength === 'weak'){
+    shadowValue = insetStr + '0 0 8px ' + withAlpha(0.5);
+  } else if(strength === 'medium'){
+    shadowValue = insetStr + '0 0 12px ' + withAlpha(0.8);
+  } else if(strength === 'strong'){
+    shadowValue = insetStr + '0 0 16px ' + withAlpha(1);
+  } else if(strength === 'neon'){
+    // 네온 3겹: 작은 빛 + 중간 빛 + 큰 빛을 콤마로 겹치기
+    shadowValue = 
+      insetStr + '0 0 5px ' + withAlpha(1) + ',' +
+      insetStr + '0 0 12px ' + withAlpha(0.8) + ',' +
+      insetStr + '0 0 22px ' + withAlpha(0.6);
+  } else {
+    // 사용자 지정: 슬라이더 값 사용
+    shadowValue = insetStr + '0 0 ' + blur + 'px ' + withAlpha(0.8);
   }
-});
+  
+  applyStyleToSelected({ 'box-shadow': shadowValue });
+  
+  showToast('빛 효과 적용!');
+  closeSubPane();
+}
 
 // ============================================================
 // 초기 실행
