@@ -460,8 +460,14 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
           <input type="range" class="field-slider" id="textshadow-blur" min="0" max="30" value="10">
           <span class="field-slider-val" id="textshadow-blur-val">10px</span>
         </div>
+        <div class="field-row">
+  <span class="field-label">크기</span>
+  <input type="number" class="field-input" id="text-fontsize" min="8" max="200" value="14" style="width:70px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:11px;border:1px solid #ddd;border-radius:4px;text-align:center">
+  <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#666">px</span>
+</div>
         <div class="impact-info">⚠ 텍스트는 inset 불가능</div>
 <div class="action-pair">
+  <button class="btn-success" onclick="applyFontSize()" style="background:#cc99ff">🔠 크기</button>
   <button class="btn-success" onclick="applyTextColor()" style="background:#74c0fc">🔤 글자색</button>
   <button class="btn-success" onclick="applyTextShadow()">✓ 그림자</button>
   <button class="btn-secondary" onclick="closeSubPane()">✗</button>
@@ -1857,6 +1863,15 @@ function applyTextColor(){
   applyStyleToSelected({ 'color': rgba });
   
   showToast('글자색 적용!');
+  closeSubPane();
+}
+// ============================================================
+// 🔠 폰트 크기 (font-size) 적용
+// ============================================================
+function applyFontSize(){
+  const size = document.getElementById('text-fontsize').value;
+  applyStyleToSelected({ 'font-size': size + 'px' });
+  showToast('크기 적용: ' + size + 'px');
   closeSubPane();
 }
 
