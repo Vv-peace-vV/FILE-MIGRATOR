@@ -21,7 +21,13 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 
 .main{flex:1;display:flex;overflow:hidden}
 
-.input-panel{width:32%;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;min-width:320px}
+.input-panel{width:280px;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .2s,min-width .2s}
+.input-panel.collapsed{width:40px;min-width:40px}
+.input-panel.collapsed .panel-scroll,.input-panel.collapsed .action-row,.input-panel.collapsed .panel-header .panel-title,.input-panel.collapsed .panel-header .panel-sub{display:none}
+.input-panel.collapsed .panel-header{padding:12px 8px;justify-content:center}
+.collapse-btn{background:none;border:1px solid #ddd;border-radius:4px;padding:4px 8px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:11px;color:#666}
+.collapse-btn:hover{background:#f0f0f0;border-color:#111;color:#111}
+  
 .panel-header{padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
 .panel-title{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:#111;font-weight:700}
 .panel-sub{font-size:11px;color:#999}
@@ -177,9 +183,11 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 <div class="main">
   <!-- 왼쪽: 입력 영역 -->
   <div class="input-panel">
-    <div class="panel-header">
+       <div class="panel-header">
       <span class="panel-title">▸ INPUT</span>
       <span class="panel-sub">HTML/CSS 둘 다 / 하나만 OK</span>
+      <button class="collapse-btn" onclick="toggleInputPanel()" id="collapse-btn" title="인풋 패널 접기/펼치기">◀</button>
+    </div>
     </div>
     <div class="panel-scroll">
       <div class="input-block">
@@ -1213,6 +1221,15 @@ function downloadOutput(){
   showToast('다운로드 시작');
 }
 
+// ============================================================
+// 인풋 패널 접기/펼치기
+// ============================================================
+function toggleInputPanel(){
+  const panel = document.querySelector('.input-panel');
+  const btn = document.getElementById('collapse-btn');
+  panel.classList.toggle('collapsed');
+  btn.textContent = panel.classList.contains('collapsed') ? '▶' : '◀';
+}
 // ============================================================
 // 초기 실행
 // ============================================================
