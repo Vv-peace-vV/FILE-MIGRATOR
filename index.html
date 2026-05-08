@@ -480,11 +480,12 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
         <div class="section-title">색상 정지점</div>
         <div id="grad-stops"></div>
         <button class="btn-secondary" style="padding:7px;font-size:10px" onclick="addGradStop()">+ 색상 추가</button>
-        <div class="impact-info">💡 적용 시 영향: 2단계에서 계산</div>
-        <div class="action-pair">
-          <button class="btn-success" onclick="alert('2단계에서 구현됩니다')">✓ 적용하기</button>
-          <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
-        </div>
+       <div class="impact-info">💡 옵션 선택 후 [적용하기]</div>
+<div class="action-pair">
+  <button class="btn-success" onclick="applyGradient()">✓ 적용하기</button>
+  <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
+</div>
+
       </div>
 
     </div>
@@ -1828,6 +1829,41 @@ function applyTextShadow(){
   applyStyleToSelected({ 'text-shadow': shadowValue });
   
   showToast('텍스트 효과 적용!');
+  closeSubPane();
+}
+// ============================================================
+// 🎨 그라데이션 (background) 적용
+// ============================================================
+function applyGradient(){
+  // 정지점이 최소 2개는 있어야 함
+  if(gradStopPickers.length < 2){
+    showToast('색상은 최소 2개 필요해요');
+    return;
+  }
+  
+  // 방향 결정
+  const dirSel = document.getElementById('grad-direction').value;
+  let angle;
+  if(dirSel === 'custom'){
+    angle = document.getElementById('grad-angle').value + 'deg';
+  } else {
+    angle = dirSel + 'deg';
+  }
+  
+  // 정지점들을 위치 순으로 정렬
+  const stops = gradStopPickers.map(s => ({
+    rgba: s.picker.getRgba(),
+    pos: s.getPosition()
+  })).sort((a, b) => a.pos - b.pos);
+  
+  // linear-gradient 문자열 만들기
+  // 예: linear-gradient(135deg, rgba(204,31,31,0.8) 0%, rgba(255,255,255,1) 100%)
+  const stopStrs = stops.map(s => s.rgba + ' ' + s.pos + '%').join(',');
+  const gradientValue = 'linear-gradient(' + angle + ',' + stopStrs + ')';
+  
+  applyStyleToSelected({ 'background': gradientValue });
+  
+  showToast('그라데이션 적용! (' + stops.length + '개 색상)');
   closeSubPane();
 }
 
