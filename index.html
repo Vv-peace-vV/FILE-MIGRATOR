@@ -101,6 +101,14 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 .preview-frame-wrap.tablet{width:768px;height:100%;min-height:600px}
 .preview-frame-wrap.mobile{width:375px;height:100%;min-height:600px}
 .preview-frame{width:100%;height:100%;border:none;background:#fff;display:block}
+  /* ========== 요소 선택 + 코드 하이라이트 ========== */
+.code-output .hl{background:#fff3a0;color:#111;border-radius:2px;padding:1px 0;box-shadow:0 0 0 2px #fff3a0}
+.selected-tag{font-family:'Share Tech Mono',monospace;font-size:11px;color:#cc1f1f;font-weight:700;word-break:break-all}
+.selected-path{font-family:'Share Tech Mono',monospace;font-size:9px;color:#888;letter-spacing:.5px;margin-top:4px;line-height:1.4}
+.applied-item.clickable{cursor:pointer}
+.applied-item.clickable:hover{background:#fff;border-color:#111}
+.applied-prop{color:#cc1f1f;font-weight:700}
+.applied-val{color:#444}
 
 /* ========== 사이드 편집 패널 ========== */
 .editor-panel{width:300px;background:#fff;border-left:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
@@ -1318,6 +1326,262 @@ function setDevice(device){
     document.body.style.userSelect = '';
   });
 })();
+  // ============================================================
+// 요소 선택 + 코드 하이라이트 (CORE)
+// ============================================================
+
+let selectedEditId = null;     // 현재 선택된 요소의 data-edit-id
+let editIdCounter = 0;         // edit-id 부여용 카운터
+let editIdMap = {};            // editId → 코드 내 위치 정보
+
+/**
+ * 변환된 결과 HTML에 data-edit-id 주입
+ * - 미리보기에만 들어감, 복사/다운로드 시엔 제거됨
+ */
+function injectEditIds(html){
+  editIdCounter = 0;
+  // <태그 ...> 패턴에 data-edit-id 추가
+  return html.replace(/<(div|p|span|b|i|strong|em|a|br|hr|img)(\s[^>]*)?(\/?)>/g, (match, tag, attrs, close) => {
+    const id = editIdCounter++;
+    attrs = attrs || '';
+    return `<${tag}${attrs} data-edit-id="${id}"${close}>`;
+  });
+}
+
+/**
+ * data-edit-id 모두 제거 (복사/다운로드용)
+ */
+function stripEditIds(html){
+  return html.replace(/\s*data-edit-id="\d+"/g, '');
+}
+
+/**
+ * iframe 내부에 클릭 감지 스크립트 주입
+ */
+function buildPreviewWithClickHandler(html){
+  const keyframesCSS = '@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes swing{20%{transform:rotate(15deg)}40%{transform:rotate(-10deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-5deg)}100%{transform:rotate(0)}}@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}@keyframes tada{0%,100%{transform:scale(1)}10%,20%{transform:scale(.9) rotate(-3deg)}30%,50%,70%,90%{transform:scale(1.1) rotate(3deg)}40%,60%,80%{transform:scale(1.1) rotate(-3deg)}}@keyframes wobble{0%,100%{transform:translateX(0)}15%{transform:translateX(-25%) rotate(-5deg)}30%{transform:translateX(20%) rotate(3deg)}45%{transform:translateX(-15%) rotate(-3deg)}60%{transform:translateX(10%) rotate(2deg)}75%{transform:translateX(-5%) rotate(-1deg)}}@keyframes jello{0%,11.1%,100%{transform:none}22.2%{transform:skewX(-12.5deg) skewY(-12.5deg)}33.3%{transform:skewX(6.25deg) skewY(6.25deg)}44.4%{transform:skewX(-3.125deg) skewY(-3.125deg)}55.5%{transform:skewX(1.5deg) skewY(1.5deg)}}@keyframes flip{from{transform:perspective(400px) rotateY(0)}to{transform:perspective(400px) rotateY(360deg)}}';
+  
+  const clickScript = `
+<script>
+(function(){
+  // 호버/선택 강조 스타일
+  var s = document.createElement('style');
+  s.textContent = '[data-edit-id]{cursor:pointer;transition:outline .1s} [data-edit-id]:hover{outline:2px dashed #74c0fc !important;outline-offset:1px} [data-edit-id].__selected{outline:2px solid #cc1f1f !important;outline-offset:1px}';
+  document.head.appendChild(s);
+  
+  document.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var el = e.target.closest('[data-edit-id]');
+    // 빈 공간(body) 클릭 시 선택 해제
+    if(!el || e.target === document.body){
+      parent.postMessage({type:'fm-select', editId:null}, '*');
+      return;
+    }
+    parent.postMessage({type:'fm-select', editId:el.dataset.editId}, '*');
+  }, true);
+  
+  // 부모창에서 선택 명령 받기
+  window.addEventListener('message', function(e){
+    if(e.data && e.data.type === 'fm-highlight'){
+      document.querySelectorAll('[data-edit-id].__selected').forEach(function(n){n.classList.remove('__selected')});
+      if(e.data.editId != null){
+        var t = document.querySelector('[data-edit-id="'+e.data.editId+'"]');
+        if(t){
+          t.classList.add('__selected');
+          t.scrollIntoView({behavior:'smooth', block:'center'});
+        }
+      }
+    }
+  });
+})();
+<\/script>`;
+  
+  return '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">' +
+    '<style>' + keyframesCSS + 'body{margin:0;background:#fff}</style>' +
+    '</head><body>' + html + clickScript + '</body></html>';
+}
+
+/**
+ * 요소 선택 (editId로)
+ */
+function selectElement(editId){
+  selectedEditId = editId;
+  
+  // iframe에 하이라이트 명령 전송
+  const iframe = document.getElementById('preview-frame');
+  if(iframe && iframe.contentWindow){
+    iframe.contentWindow.postMessage({type:'fm-highlight', editId:editId}, '*');
+  }
+  
+  // 코드 영역 하이라이트
+  highlightInCode(editId);
+  
+  // 사이드 패널 정보 갱신
+  updateSelectedInfo(editId);
+  
+  // 효과 버튼 활성화/비활성화
+  document.querySelectorAll('.effect-btn').forEach(b => {
+    b.disabled = (editId == null);
+  });
+}
+
+/**
+ * 코드 영역에서 해당 editId 하이라이트 + 스크롤
+ */
+function highlightInCode(editId){
+  const codeEl = document.getElementById('output-code');
+  if(!codeEl) return;
+  
+  // 원본 텍스트 복원 (이전 하이라이트 제거)
+  if(codeEl.dataset.original){
+    codeEl.textContent = codeEl.dataset.original;
+  } else {
+    codeEl.dataset.original = codeEl.textContent;
+  }
+  
+  if(editId == null) return;
+  
+  const text = codeEl.textContent;
+  // data-edit-id="N" 가 들어있는 태그 찾기
+  const pattern = new RegExp('<[^>]*data-edit-id="' + editId + '"[^>]*>', 'i');
+  const match = text.match(pattern);
+  if(!match) return;
+  
+  const idx = match.index;
+  const before = text.slice(0, idx);
+  const hit = match[0];
+  const after = text.slice(idx + hit.length);
+  
+  // textContent 비우고 하이라이트 span으로 재구성
+  codeEl.textContent = '';
+  codeEl.appendChild(document.createTextNode(before));
+  const span = document.createElement('span');
+  span.className = 'hl';
+  span.textContent = hit;
+  codeEl.appendChild(span);
+  codeEl.appendChild(document.createTextNode(after));
+  
+  // 스크롤
+  setTimeout(() => {
+    span.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 50);
+}
+
+/**
+ * 사이드 패널의 "선택된 요소" 정보 갱신
+ */
+function updateSelectedInfo(editId){
+  const display = document.getElementById('selected-display');
+  const nav = document.getElementById('selected-nav');
+  const sub = document.getElementById('editor-sub');
+  const appliedList = document.getElementById('applied-list');
+  
+  if(editId == null){
+    display.innerHTML = '<div class="selected-info-empty">미리보기에서 요소를 클릭하세요</div>';
+    nav.style.display = 'none';
+    sub.textContent = '선택 없음';
+    appliedList.innerHTML = '<div class="applied-empty">선택된 요소 없음</div>';
+    return;
+  }
+  
+  // iframe에서 요소 정보 가져오기
+  const iframe = document.getElementById('preview-frame');
+  if(!iframe || !iframe.contentDocument) return;
+  const el = iframe.contentDocument.querySelector('[data-edit-id="' + editId + '"]');
+  if(!el) return;
+  
+  // 태그 정보 + 텍스트 미리보기
+  const tag = el.tagName.toLowerCase();
+  const textPreview = (el.textContent || '').trim().slice(0, 30);
+  const previewLabel = textPreview ? ` "${textPreview}${el.textContent.length>30?'...':''}"` : '';
+  
+  // 부모 경로 (DOM 트리)
+  const path = [];
+  let cur = el;
+  while(cur && cur.tagName !== 'BODY'){
+    path.unshift(cur.tagName.toLowerCase());
+    cur = cur.parentElement;
+  }
+  
+  display.innerHTML = `
+    <div class="selected-tag">&lt;${tag}&gt;${escapeHTML(previewLabel)}</div>
+    <div class="selected-path">${path.join(' › ')}</div>
+  `;
+  nav.style.display = 'flex';
+  sub.textContent = '<' + tag + '>';
+  
+  // 부모/자식 이동 버튼 활성화
+  const navParent = document.getElementById('nav-parent');
+  const navChild = document.getElementById('nav-child');
+  navParent.disabled = !(el.parentElement && el.parentElement.dataset.editId);
+  navChild.disabled = !(el.querySelector && el.querySelector('[data-edit-id]'));
+  navParent.onclick = () => {
+    if(el.parentElement && el.parentElement.dataset.editId){
+      selectElement(el.parentElement.dataset.editId);
+    }
+  };
+  navChild.onclick = () => {
+    const child = el.querySelector('[data-edit-id]');
+    if(child) selectElement(child.dataset.editId);
+  };
+  
+  // 현재 적용된 효과 목록
+  updateAppliedList(el);
+}
+
+/**
+ * "현재 적용된 효과" 목록 업데이트
+ */
+function updateAppliedList(el){
+  const list = document.getElementById('applied-list');
+  const styleStr = el.getAttribute('style') || '';
+  const map = parseInlineStyle(styleStr);
+  
+  if(Object.keys(map).length === 0){
+    list.innerHTML = '<div class="applied-empty">적용된 인라인 스타일 없음</div>';
+    return;
+  }
+  
+  list.innerHTML = '';
+  Object.entries(map).forEach(([prop, val]) => {
+    const item = document.createElement('div');
+    item.className = 'applied-item';
+    const valShort = val.length > 30 ? val.slice(0, 30) + '...' : val;
+    item.innerHTML = `
+      <span class="applied-item-text"><span class="applied-prop">${escapeHTML(prop)}</span>: <span class="applied-val">${escapeHTML(valShort)}</span></span>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// iframe → 부모창 메시지 수신
+window.addEventListener('message', e => {
+  if(!e.data || e.data.type !== 'fm-select') return;
+  selectElement(e.data.editId);
+});
+
+// 키보드 단축키 (Tab=부모, Shift+Tab=자식, ESC=해제)
+document.addEventListener('keydown', e => {
+  // input/textarea에 포커스되어 있으면 무시
+  if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if(selectedEditId == null) return;
+  
+  if(e.key === 'Escape'){
+    selectElement(null);
+    e.preventDefault();
+  } else if(e.key === 'Tab'){
+    e.preventDefault();
+    const btn = e.shiftKey ? document.getElementById('nav-child') : document.getElementById('nav-parent');
+    if(btn && !btn.disabled) btn.click();
+  }
+});
+
 
 // ============================================================
 // 초기 실행
