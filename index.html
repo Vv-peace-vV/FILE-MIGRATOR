@@ -1384,12 +1384,20 @@ function buildPreviewWithClickHandler(html){
     e.stopPropagation();
     var el = e.target.closest('[data-edit-id]');
     // 빈 공간(body) 클릭 시 선택 해제
-    if(!el || e.target === document.body){
+    if(!el || e.target === document.body || e.target === document.documentElement){
       parent.postMessage({type:'fm-select', editId:null}, '*');
       return;
     }
     parent.postMessage({type:'fm-select', editId:el.dataset.editId}, '*');
   }, true);
+  
+  // iframe 안에서 ESC 키 → 부모창에 알림
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+      parent.postMessage({type:'fm-key-escape'}, '*');
+      e.preventDefault();
+    }
+  });
   
   // 부모창에서 선택 명령 받기
   window.addEventListener('message', function(e){
@@ -1444,25 +1452,32 @@ function highlightInCode(editId){
   const codeEl = document.getElementById('output-code');
   if(!codeEl) return;
   
-  // 원본 텍스트 복원 (이전 하이라이트 제거)
-  if(codeEl.dataset.original){
-    codeEl.textContent = codeEl.dataset.original;
-  } else {
+  // 원본 텍스트 보관 (최초 1회)
+  if(!codeEl.dataset.original || codeEl.dataset.original === ''){
     codeEl.dataset.original = codeEl.textContent;
   }
   
-  if(editId == null) return;
+  // 항상 원본부터 다시 시작 (이전 하이라이트 깨끗이 제거)
+  const original = codeEl.dataset.original;
   
-  const text = codeEl.textContent;
+  if(editId == null){
+    codeEl.textContent = original;
+    return;
+  }
+  
   // data-edit-id="N" 가 들어있는 태그 찾기
-  const pattern = new RegExp('<[^>]*data-edit-id="' + editId + '"[^>]*>', 'i');
-  const match = text.match(pattern);
-  if(!match) return;
+  const pattern = new RegExp('<[^>]*\\sdata-edit-id="' + editId + '"[^>]*>', 'i');
+  const match = original.match(pattern);
+  if(!match){
+    codeEl.textContent = original;
+    console.warn('[highlight] editId 매칭 실패:', editId);
+    return;
+  }
   
   const idx = match.index;
-  const before = text.slice(0, idx);
+  const before = original.slice(0, idx);
   const hit = match[0];
-  const after = text.slice(idx + hit.length);
+  const after = original.slice(idx + hit.length);
   
   // textContent 비우고 하이라이트 span으로 재구성
   codeEl.textContent = '';
@@ -1576,22 +1591,25 @@ window.addEventListener('message', e => {
   selectElement(e.data.editId);
 });
 
-// 키보드 단축키 (Tab=부모, Shift+Tab=자식, ESC=해제)
-document.addEventListener('keydown', e => {
-  // input/textarea에 포커스되어 있으면 무시
-  if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
-  if(selectedEditId == null) return;
+  document.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var el = e.target.closest('[data-edit-id]');
+    // 빈 공간(body) 클릭 시 선택 해제
+    if(!el || e.target === document.body || e.target === document.documentElement){
+      parent.postMessage({type:'fm-select', editId:null}, '*');
+      return;
+    }
+    parent.postMessage({type:'fm-select', editId:el.dataset.editId}, '*');
+  }, true);
   
-  if(e.key === 'Escape'){
-    selectElement(null);
-    e.preventDefault();
-  } else if(e.key === 'Tab'){
-    e.preventDefault();
-    const btn = e.shiftKey ? document.getElementById('nav-child') : document.getElementById('nav-parent');
-    if(btn && !btn.disabled) btn.click();
-  }
-});
-
+  // iframe 안에서 ESC 키 → 부모창에 알림
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+      parent.postMessage({type:'fm-key-escape'}, '*');
+      e.preventDefault();
+    }
+  });
 
 // ============================================================
 // 초기 실행
