@@ -1585,35 +1585,38 @@ function escapeHTML(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// iframe → 부모창 메시지 수신
+// iframe → 부모창 메시지 수신 (선택)
 window.addEventListener('message', e => {
-  if(!e.data || e.data.type !== 'fm-select') return;
-  selectElement(e.data.editId);
+  if(!e.data) return;
+  if(e.data.type === 'fm-select'){
+    selectElement(e.data.editId);
+  } else if(e.data.type === 'fm-key-escape'){
+    if(selectedEditId != null) selectElement(null);
+  }
 });
 
-  document.addEventListener('click', function(e){
-    e.preventDefault();
-    e.stopPropagation();
-    var el = e.target.closest('[data-edit-id]');
-    // 빈 공간(body) 클릭 시 선택 해제
-    if(!el || e.target === document.body || e.target === document.documentElement){
-      parent.postMessage({type:'fm-select', editId:null}, '*');
-      return;
-    }
-    parent.postMessage({type:'fm-select', editId:el.dataset.editId}, '*');
-  }, true);
+// 키보드 단축키 (Tab=부모, Shift+Tab=자식, ESC=해제)
+document.addEventListener('keydown', e => {
+  // input/textarea에 포커스되어 있으면 무시
+  const ae = document.activeElement;
+  if(ae && /INPUT|TEXTAREA/.test(ae.tagName)) return;
   
-  // iframe 안에서 ESC 키 → 부모창에 알림
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape'){
-      parent.postMessage({type:'fm-key-escape'}, '*');
+  if(e.key === 'Escape'){
+    if(selectedEditId != null){
+      selectElement(null);
       e.preventDefault();
     }
-  });
+  } else if(e.key === 'Tab' && selectedEditId != null){
+    e.preventDefault();
+    const btn = e.shiftKey ? document.getElementById('nav-child') : document.getElementById('nav-parent');
+    if(btn && !btn.disabled) btn.click();
+  }
+});
 
 // ============================================================
 // 초기 실행
 // ============================================================
+
 updateCounters();
 updateOutputCounter();
 autoLoad();  // 새로고침 후 작업물 복원
