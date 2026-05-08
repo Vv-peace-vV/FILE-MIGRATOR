@@ -386,9 +386,9 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
             <option value="3">3회</option>
           </select>
         </div>
-        <div class="impact-info" id="anim-impact">💡 적용 시 영향: 2단계에서 계산</div>
+                <div class="impact-info" id="anim-impact">💡 옵션 선택 후 [적용하기]</div>
         <div class="action-pair">
-          <button class="btn-success" onclick="alert('2단계에서 구현됩니다')">✓ 적용하기</button>
+          <button class="btn-success" onclick="applyAnimation()">✓ 적용하기</button>
           <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
         </div>
       </div>
@@ -1587,6 +1587,114 @@ function updateAppliedList(el){
 
 function escapeHTML(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// ============================================================
+// 효과 적용 공통 기반 (모든 효과 패널이 사용)
+// ============================================================
+
+/**
+ * 선택된 요소에 스타일 변경 적용 + 모든 곳 자동 갱신
+ * @param {object} styleChanges - {prop: value, ...} (값이 ''면 제거)
+ */
+function applyStyleToSelected(styleChanges){
+  if(selectedEditId == null){ showToast('먼저 요소를 선택해주세요'); return; }
+  
+  // 1. iframe 안의 실제 요소에 스타일 적용 (잔여 찌꺼기 방지!)
+  const iframe = document.getElementById('preview-frame');
+  const el = iframe.contentDocument.querySelector('[data-edit-id="' + selectedEditId + '"]');
+  if(!el){ showToast('요소를 찾을 수 없어요'); return; }
+  
+  setStyleProperty(el, styleChanges);
+  
+  // 2. convertedHTML 갱신 (iframe 전체 body 다시 가져오기)
+  const newHTML = iframe.contentDocument.body.innerHTML;
+  // iframe 안의 클릭 스크립트 태그는 제외
+  convertedHTML = newHTML.replace(/<script>[\s\S]*?<\/script>/g, '').trim();
+  
+  // 3. 코드 영역 갱신 (통계 헤더 보존)
+  const codeEl = document.getElementById('output-code');
+  const oldText = codeEl.dataset.original || codeEl.textContent;
+  const headerMatch = oldText.match(/^\/\*[\s\S]*?\*\/\n*/);
+  const header = headerMatch ? headerMatch[0] : '';
+  // 글자 수 갱신
+  const cleanLength = stripEditIds(convertedHTML).length;
+  const newHeader = header.replace(/(\* 최종 글자 수: )[\d,]+( chars)/, '$1' + cleanLength.toLocaleString() + '$2');
+  
+  const newCodeText = newHeader + convertedHTML;
+  codeEl.dataset.original = newCodeText;
+  
+  // 4. 글자 수 카운터 갱신
+  const tempConverted = convertedHTML;
+  convertedHTML = stripEditIds(tempConverted);
+  updateOutputCounter();
+  convertedHTML = tempConverted;  // 편집용은 다시 ID 포함된 걸로
+  
+  // 5. 사이드 패널 "적용된 효과" 목록 갱신
+  updateAppliedList(el);
+  
+  // 6. 코드 하이라이트도 다시 (선택 유지)
+  highlightInCode(selectedEditId);
+  
+  // 7. 자동 저장 트리거
+  autoSave();
+}
+
+/**
+ * 효과 적용 시 글자 수 영향 미리 계산 (impact-info 표시용)
+ * @param {object} styleChanges - 적용 예정 스타일
+ * @returns {number} - 글자 수 변화량 (+면 증가, -면 감소)
+ */
+function calcImpact(styleChanges){
+  if(selectedEditId == null) return 0;
+  const iframe = document.getElementById('preview-frame');
+  const el = iframe.contentDocument.querySelector('[data-edit-id="' + selectedEditId + '"]');
+  if(!el) return 0;
+  
+  const before = (el.getAttribute('style') || '').length;
+  // 임시 적용 후 길이 계산
+  const map = parseInlineStyle(el.getAttribute('style') || '');
+  for(const [k, v] of Object.entries(styleChanges)){
+    if(v === '' || v == null) delete map[k];
+    else map[k] = v;
+  }
+  const after = stringifyInlineStyle(map).length;
+  return after - before;
+}
+
+/**
+ * impact-info 표시 갱신
+ */
+function showImpact(panelId, styleChanges){
+  const el = document.getElementById(panelId + '-impact');
+  if(!el) return;
+  const diff = calcImpact(styleChanges);
+  const sign = diff > 0 ? '+' : '';
+  el.classList.remove('warn','danger');
+  let icon = '💡';
+  if(diff > 100) { el.classList.add('warn'); icon = '⚠'; }
+  if(diff > 200) { el.classList.add('danger'); icon = '🚨'; }
+  el.textContent = icon + ' 적용 시 ' + sign + diff + '자';
+}
+  // ============================================================
+// 🎬 애니메이션 적용
+// ============================================================
+function applyAnimation(){
+  const name = document.getElementById('anim-name').value;
+  const duration = document.getElementById('anim-duration').value;
+  const timing = document.getElementById('anim-timing').value;
+  const iter = document.getElementById('anim-iter').value;
+  
+  // 케이브덕은 pulse/flash/fadeIn만 확실히 동작 → 경고
+  const safeNames = ['pulse','flash','fadeIn'];
+  if(!safeNames.includes(name)){
+    if(!confirm(name + ' 애니메이션은 케이브덕에서 동작 안 할 수 있어요.\npulse/flash/fadeIn만 확실히 동작합니다.\n그래도 적용할까요?')) return;
+  }
+  
+  const value = name + ' ' + duration + ' ' + timing + ' ' + iter;
+  applyStyleToSelected({ animation: value });
+  
+  showToast('애니메이션 적용: ' + name);
+  closeSubPane();
 }
 
 // iframe → 부모창 메시지 수신 (선택)
