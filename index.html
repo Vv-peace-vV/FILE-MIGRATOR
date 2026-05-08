@@ -1411,6 +1411,17 @@ if(allSame(borderWidths) && allSame(borderStyles) && allSame(borderColors)){
     delete styleObj[`border-${s}-style`];
     delete styleObj[`border-${s}-color`];
   });
+  // 27. unset 값 모두 제거 (GrapesJS 잔재)
+Object.keys(styleObj).forEach(key => {
+  if(styleObj[key] === 'unset' || styleObj[key] === 'initial' || styleObj[key] === 'inherit'){
+    delete styleObj[key];
+  }
+});
+
+// 28. background-size-options 같은 가짜 속성 제거
+['background-size-options'].forEach(prop => {
+  if(prop in styleObj) delete styleObj[prop];
+});
 }   
   return styleObj;
 }
