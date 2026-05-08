@@ -103,6 +103,11 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 .preview-frame{width:100%;height:100%;border:none;background:#fff;display:block}
   /* ========== 요소 선택 + 코드 하이라이트 ========== */
 .code-output .hl{background:#fff3a0;color:#111;border-radius:2px;padding:1px 0;box-shadow:0 0 0 2px #fff3a0}
+.code-output[contenteditable="true"]{outline:none;cursor:text;background:#fff;box-shadow:inset 0 0 0 1px #ddd}
+.code-output[contenteditable="true"]:focus{box-shadow:inset 0 0 0 2px #74c0fc;background:#fafff5}
+.code-edit-status{font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 10px;background:#fafafa;border-bottom:1px solid #eee;color:#999;display:flex;align-items:center;gap:6px}
+.code-edit-status.editing{color:#ff8800}
+.code-edit-status.saved{color:#1a6b3a}
 .selected-tag{font-family:'Share Tech Mono',monospace;font-size:11px;color:#cc1f1f;font-weight:700;word-break:break-all}
 .selected-path{font-family:'Share Tech Mono',monospace;font-size:9px;color:#888;letter-spacing:.5px;margin-top:4px;line-height:1.4}
 .applied-item.clickable{cursor:pointer}
@@ -269,13 +274,17 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
     <div class="output-split">
       <!-- 왼쪽: 코드 영역 -->
       <div class="split-left">
-        <div class="output-tabs">
-          <button class="tab-btn active" style="cursor:default">▸ CODE</button>
-        </div>
-        <div style="flex:1;overflow:auto">
-          <pre class="code-output" id="output-code"></pre>
-        </div>
-      </div>
+  <div class="output-tabs">
+    <button class="tab-btn active" style="cursor:default">▸ CODE</button>
+  </div>
+  <div class="code-edit-status" id="code-status">
+    <span id="code-status-text">읽기 전용</span>
+    <span style="margin-left:auto;color:#aaa">클릭하면 편집 모드</span>
+  </div>
+  <div style="flex:1;overflow:auto">
+    <pre class="code-output" id="output-code" spellcheck="false"></pre>
+  </div>
+</div>
       <!-- 드래그 구분선 -->
       <div class="split-divider" id="split-divider"></div>
       <!-- 오른쪽: 프리뷰 영역 -->
@@ -1884,6 +1893,96 @@ function applySolidColor(){
   showToast('단색 배경 적용!');
   closeSubPane();
 }
+// ============================================================
+// ✏️ 코드 직접 편집 (1초 디바운스 후 프리뷰 갱신)
+// ============================================================
+let codeEditTimer = null;
+let isCodeEditing = false;
+
+function initCodeEditor(){
+  const codeEl = document.getElementById('output-code');
+  const status = document.getElementById('code-status');
+  const statusText = document.getElementById('code-status-text');
+  if(!codeEl) return;
+  
+  // 편집 가능하게 설정
+  codeEl.setAttribute('contenteditable', 'true');
+  
+  // 포커스 들어오면 편집 모드
+  codeEl.addEventListener('focus', () => {
+    isCodeEditing = true;
+    statusText.textContent = '✏️ 편집 모드';
+    status.className = 'code-edit-status editing';
+  });
+  
+  // 포커스 빠지면 읽기 모드
+  codeEl.addEventListener('blur', () => {
+    isCodeEditing = false;
+    if(!codeEditTimer){
+      statusText.textContent = '읽기 전용';
+      status.className = 'code-edit-status';
+    }
+  });
+  
+  // 입력 감지 → 1초 후 갱신
+  codeEl.addEventListener('input', () => {
+    statusText.textContent = '⏳ 입력 중...';
+    status.className = 'code-edit-status editing';
+    
+    // 기존 타이머 취소하고 새로 시작
+    if(codeEditTimer) clearTimeout(codeEditTimer);
+    codeEditTimer = setTimeout(() => {
+      applyCodeEdit();
+      codeEditTimer = null;
+    }, 1000);
+  });
+}
+
+function applyCodeEdit(){
+  const codeEl = document.getElementById('output-code');
+  const status = document.getElementById('code-status');
+  const statusText = document.getElementById('code-status-text');
+  
+  // 현재 편집된 텍스트 가져오기
+  let editedText = codeEl.textContent;
+  
+  // 헤더(/* ... */) 분리
+  const headerMatch = editedText.match(/^\/\*[\s\S]*?\*\/\n*/);
+  let bodyHTML = headerMatch ? editedText.slice(headerMatch[0].length) : editedText;
+  
+  // data-edit-id 자동 재부여 (혹시 누나가 지웠을 수도 있으니)
+  const cleanBody = stripEditIds(bodyHTML);
+  const reIdded = injectEditIds(cleanBody);
+  
+  // 글자 수 다시 계산 (data-edit-id 제외)
+  const cleanLength = stripEditIds(reIdded).length;
+  let newHeader = headerMatch ? headerMatch[0] : '';
+  newHeader = newHeader.replace(/(\* 최종 글자 수: )[\d,]+( chars)/, '$1' + cleanLength.toLocaleString() + '$2');
+  
+  // 데이터 갱신
+  convertedHTML = reIdded;
+  codeEl.dataset.original = newHeader + reIdded;
+  
+  // 프리뷰 갱신
+  const iframe = document.getElementById('preview-frame');
+  if(iframe){
+    iframe.srcdoc = buildPreviewWithClickHandler(reIdded);
+  }
+  
+  // 카운터 갱신
+  updateOutputCounter();
+  
+  // 자동 저장
+  autoSave();
+  
+  // 상태 표시
+  statusText.textContent = '✓ 저장됨';
+  status.className = 'code-edit-status saved';
+  
+  // 선택 해제 (편집했으니 기존 선택 무효)
+  selectedEditId = null;
+  updateSelectedInfo(null);
+}
 
 // ============================================================
 // iframe → 부모창 메시지 수신 + 키보드 단축키
@@ -1920,7 +2019,7 @@ document.addEventListener('keydown', e => {
 updateCounters();
 updateOutputCounter();
 autoLoad();  // 새로고침 후 작업물 복원
-
+initCodeEditor();
 // 콘솔 안내
 console.log('%c[FILE MIGRATOR] Phase 1 로드 완료', 'color:#1a6b3a;font-weight:bold');
 console.log('잔여 찌꺼기 방지 테스트: window.__testCleanStyle()');
