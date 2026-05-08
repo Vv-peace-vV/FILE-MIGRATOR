@@ -1366,7 +1366,11 @@ function injectEditIds(html){
  * data-edit-id 모두 제거 (복사/다운로드용)
  */
 function stripEditIds(html){
-  return html.replace(/\s*data-edit-id="\d+"/g, '');
+  return html
+    .replace(/\s*data-edit-id="\d+"/g, '')      // 편집용 ID 제거
+    .replace(/\s*class="__selected"/g, '')       // 선택 강조 클래스만 있을 때
+    .replace(/\s*class="[^"]*__selected[^"]*"/g, '')  // 다른 클래스랑 같이 있을 때
+    .replace(/\s*class=""/g, '');                // 빈 class 속성 제거
 }
 
 /**
