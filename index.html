@@ -1414,6 +1414,57 @@ if(allSame(borderWidths) && allSame(borderStyles) && allSame(borderColors)){
 }   
   return styleObj;
 }
+    // ============================================================
+// 🌳 font-family 상속 처리 (DOM 트리 기반)
+// ============================================================
+/**
+ * 부모와 동일한 font-family를 가진 자식의 font-family 삭제
+ * - 인라인 style의 font-family 비교
+ * - 따옴표/공백 차이 무시 (정규화 비교)
+ * - body부터 자식들 순회하며 누적된 font-family 추적
+ */
+function inheritFontFamily(rootEl){
+  // font-family 정규화 (비교용)
+  const normalize = s => s.replace(/['"`]/g, '').replace(/\s+/g, '').toLowerCase();
+  
+  let removedCount = 0;
+  
+  // 재귀적으로 처리: 자식 요소의 font-family가 부모(누적된)와 같으면 삭제
+  function walk(el, inheritedFont){
+    let myFont = inheritedFont;
+    const styleStr = el.getAttribute && el.getAttribute('style');
+    
+    if(styleStr){
+      const map = parseInlineStyle(styleStr);
+      const ownFont = map['font-family'];
+      
+      if(ownFont){
+        // 부모의 font-family와 같으면 삭제
+        if(inheritedFont && normalize(ownFont) === normalize(inheritedFont)){
+          delete map['font-family'];
+          removedCount++;
+          // style 다시 쓰기
+          const finalStr = stringifyInlineStyle(map);
+          if(finalStr) el.setAttribute('style', finalStr);
+          else el.removeAttribute('style');
+        } else {
+          // 다르면 자식들에게 전달할 폰트는 내 폰트
+          myFont = ownFont;
+        }
+      }
+    }
+    
+    // 자식들 재귀 처리
+    if(el.children){
+      for(const child of el.children){
+        walk(child, myFont);
+      }
+    }
+  }
+  
+  walk(rootEl, null);
+  return removedCount;
+}
 
 function normalizeAnimation(styleObj){
   if(styleObj['animation']){
@@ -1523,7 +1574,7 @@ function convert(){
   const inputCSS = document.getElementById('input-css').value.trim();
   if(!inputHTML && !inputCSS){ showToast('HTML 또는 CSS를 입력해주세요'); return; }
   
-  const stats = {idRemoved:0,classRemoved:0,mediaApplied:0,animConverted:0,tagsConverted:0,emptyRemoved:0,attrsCleaned:0,heroDetected:0};
+  const stats = {idRemoved:0,classRemoved:0,mediaApplied:0,animConverted:0,tagsConverted:0,emptyRemoved:0,attrsCleaned:0,heroDetected:0,fontInherited:0};
   const parser = new DOMParser();
   const doc = parser.parseFromString(inputHTML || '<div></div>', 'text/html');
   
@@ -1566,6 +1617,9 @@ function convert(){
   stats.attrsCleaned = cleanAttributes(body);
   stats.emptyRemoved = removeEmptyElements(body);
   
+  // ⭐ font-family 상속 처리 (부모와 같은 자식 폰트 삭제)
+stats.fontInherited = inheritFontFamily(body);
+  
   let result = body.innerHTML.trim();
   result = result.replace(/>\s+</g, '><').replace(/\s{2,}/g,' ');
   convertedHTML = result;
@@ -1580,7 +1634,9 @@ function convert(){
     ' * 속성 정리: ' + stats.attrsCleaned + '개\n' +
     ' * 빈 요소 제거: ' + stats.emptyRemoved + '개\n' +
     ' * HERO 반응형 적용: ' + stats.heroDetected + '개\n' +
+    ' * 폰트 상속 처리: ' + stats.fontInherited + '개\n' +
     ' * 최종 글자 수: ' + result.length.toLocaleString() + ' chars\n' +
+
     ' * ============================== */\n\n';
   // data-edit-id 주입 (편집용 ID, 복사할 땐 자동 제거됨)
   const resultWithIds = injectEditIds(result);
