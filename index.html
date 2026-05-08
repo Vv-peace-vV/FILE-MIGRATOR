@@ -13,11 +13,15 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 .app-header-left{display:flex;align-items:center;gap:12px}
 .app-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6em;letter-spacing:3px;color:#111}
 .app-subtitle{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:#888}
+.app-header-right{display:flex;align-items:center;gap:10px}
+.autosave-indicator{font-family:'Share Tech Mono',monospace;font-size:10px;color:#888;letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.autosave-dot{width:6px;height:6px;border-radius:50%;background:#1a6b3a;animation:asPulse 2s infinite}
+@keyframes asPulse{0%,100%{opacity:1}50%{opacity:.4}}
 .app-badge{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;background:#111;color:#fff;padding:4px 10px;border-radius:4px}
 
 .main{flex:1;display:flex;overflow:hidden}
 
-.input-panel{width:42%;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden}
+.input-panel{width:32%;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;min-width:320px}
 .panel-header{padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
 .panel-title{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:#111;font-weight:700}
 .panel-sub{font-size:11px;color:#999}
@@ -42,14 +46,17 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 .btn-secondary{background:#fff;color:#111;border:1px solid #ccc}
 .btn-secondary:hover{background:#f0f0f0;border-color:#111}
 .btn-success{background:#1a6b3a;color:#fff}
+.btn-success:hover{background:#155029}
+.btn-danger{background:#cc1f1f;color:#fff}
+.btn-danger:hover{background:#a01818}
 
-.output-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.output-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff;min-width:380px}
 .output-tabs{display:flex;background:#fafafa;border-bottom:1px solid #e0e0e0;flex-shrink:0}
 .tab-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:11px 18px;color:#888;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-weight:700}
 .tab-btn:hover{color:#444}
 .tab-btn.active{color:#111;border-bottom-color:#111;background:#fff}
 
-.counter-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#fff;border-bottom:1px solid #eee;flex-shrink:0}
+.counter-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#fff;border-bottom:1px solid #eee;flex-shrink:0;flex-wrap:wrap;gap:8px}
 .counter-info{display:flex;gap:14px;align-items:center}
 .counter-item{display:flex;align-items:baseline;gap:5px}
 .counter-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:#aaa}
@@ -69,11 +76,86 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
 .preview-frame{width:100%;height:100%;border:none;background:#e8e8e8;display:block}
 .preview-empty{display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:13px}
 
-.empty-state{display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:13px;text-align:center;padding:40px}
-.empty-state-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+/* ========== 사이드 편집 패널 ========== */
+.editor-panel{width:300px;background:#fff;border-left:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.editor-header{padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.editor-body{flex:1;overflow-y:auto;position:relative}
+
+.editor-pane{position:absolute;inset:0;overflow-y:auto;padding:14px 16px;display:none;flex-direction:column;gap:12px}
+.editor-pane.active{display:flex}
+
+.selected-info{background:#fafafa;border:1px solid #e0e0e0;border-radius:6px;padding:10px 12px}
+.selected-info-title{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:#666;margin-bottom:6px;font-weight:700}
+.selected-info-tag{font-family:'Share Tech Mono',monospace;font-size:13px;color:#111;font-weight:700}
+.selected-info-empty{font-size:11px;color:#999;font-style:italic}
+.selected-info-nav{display:flex;gap:6px;margin-top:8px}
+.selected-info-nav button{flex:1;padding:6px;font-family:'Share Tech Mono',monospace;font-size:10px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;color:#444}
+.selected-info-nav button:hover{background:#f0f0f0;border-color:#111;color:#111}
+.selected-info-nav button:disabled{opacity:.4;cursor:not-allowed}
+
+.section-title{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:#666;font-weight:700;padding:4px 0;border-bottom:1px solid #eee}
+
+.effect-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.effect-btn{padding:14px 8px;background:#fff;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:11px;color:#333;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;font-family:'IBM Plex Sans KR',sans-serif}
+.effect-btn:hover:not(:disabled){background:#f7f7f7;border-color:#111;color:#111}
+.effect-btn:disabled{opacity:.4;cursor:not-allowed}
+.effect-btn-icon{font-size:18px}
+
+.applied-list{display:flex;flex-direction:column;gap:5px}
+.applied-item{display:flex;align-items:center;gap:6px;padding:7px 9px;background:#fafafa;border:1px solid #eee;border-radius:5px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#333}
+.applied-item-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.applied-item-btn{background:none;border:none;cursor:pointer;color:#888;font-size:11px;padding:2px 4px;border-radius:3px}
+.applied-item-btn:hover{background:#fff;color:#111}
+.applied-item-btn.del:hover{color:#cc1f1f}
+.applied-empty{font-size:11px;color:#aaa;padding:10px 0;text-align:center;font-style:italic}
+
+/* 세부 패널 공용 */
+.sub-pane-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.back-btn{background:none;border:1px solid #ddd;border-radius:4px;padding:5px 8px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;color:#666}
+.back-btn:hover{background:#f0f0f0;border-color:#111;color:#111}
+.sub-pane-title{font-family:'Share Tech Mono',monospace;font-size:12px;color:#111;font-weight:700;letter-spacing:2px}
+
+.field-row{display:flex;align-items:center;gap:8px}
+.field-label{font-size:11px;color:#444;font-weight:600;width:60px;flex-shrink:0}
+.field-input,.field-select{flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:11px;background:#fff;outline:none}
+.field-input:focus,.field-select:focus{border-color:#111}
+.field-slider{flex:1;height:6px;-webkit-appearance:none;appearance:none;background:#eee;border-radius:3px;outline:none;cursor:pointer}
+.field-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#111;border-radius:50%;cursor:pointer}
+.field-slider::-moz-range-thumb{width:16px;height:16px;background:#111;border-radius:50%;cursor:pointer;border:none}
+.field-slider-val{font-family:'Share Tech Mono',monospace;font-size:10px;color:#666;width:42px;text-align:right;flex-shrink:0}
+
+.checkbox-row{display:flex;align-items:center;gap:6px}
+.checkbox-row input{margin:0}
+.checkbox-row label{font-size:11px;color:#444;cursor:pointer}
+
+.impact-info{background:#fafafa;border:1px solid #e0e0e0;border-radius:5px;padding:8px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#555;line-height:1.5}
+.impact-info.warn{background:#fff8e6;border-color:#ffd97a;color:#8a6500}
+.impact-info.danger{background:#ffe6e6;border-color:#ff9999;color:#aa0000}
+
+.action-pair{display:flex;gap:6px;margin-top:4px}
+.action-pair button{flex:1;padding:9px;border:none;border-radius:5px;font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .15s}
+
+/* ========== 색상 피커 ========== */
+.color-picker{background:#fafafa;border:1px solid #e0e0e0;border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.color-preview-row{display:flex;align-items:center;gap:8px}
+.color-preview{width:38px;height:38px;border-radius:5px;border:1px solid #ddd;flex-shrink:0;background-image:linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%),linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%);background-size:10px 10px;background-position:0 0,5px 5px;position:relative;overflow:hidden}
+.color-preview-inner{position:absolute;inset:0;border-radius:4px}
+.color-native{width:34px;height:34px;border:none;padding:0;cursor:pointer;background:none}
+.color-hex-input{flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:11px;text-transform:uppercase;outline:none}
+.color-hex-input:focus{border-color:#111}
+.palette-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.palette-swatch{aspect-ratio:1;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:all .1s}
+.palette-swatch:hover{transform:scale(1.1);border-color:#111}
+.palette-swatch.active{border-color:#111;transform:scale(1.05)}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#111;color:#fff;padding:12px 24px;border-radius:8px;font-size:12px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;opacity:0;transition:all .3s;pointer-events:none;z-index:1000}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* 반응형 */
+@media (max-width:1200px){
+  .editor-panel{width:260px}
+  .input-panel{width:30%}
+}
 </style>
 </head>
 <body>
@@ -83,7 +165,13 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
     <div class="app-logo">FILE MIGRATOR</div>
     <div class="app-subtitle">HTML / CSS → CAVEDUCK CONVERTER</div>
   </div>
-  <div class="app-badge">NSSA · 케이브덕 호환 변환기</div>
+  <div class="app-header-right">
+    <div class="autosave-indicator" id="autosave-indicator" style="display:none">
+      <div class="autosave-dot"></div>
+      <span id="autosave-text">자동 저장됨</span>
+    </div>
+    <div class="app-badge">NSSA · 케이브덕 호환 변환기</div>
+  </div>
 </div>
 
 <div class="main">
@@ -91,7 +179,7 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
   <div class="input-panel">
     <div class="panel-header">
       <span class="panel-title">▸ INPUT</span>
-      <span class="panel-sub">HTML과 CSS 둘 다 / 하나만 OK</span>
+      <span class="panel-sub">HTML/CSS 둘 다 / 하나만 OK</span>
     </div>
     <div class="panel-scroll">
       <div class="input-block">
@@ -113,7 +201,7 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
           <span class="ok">✓</span> 허용 안 된 태그 → div 변환<br>
           <span class="ok">✓</span> position:relative + top/left Npx 제거<br>
           <span class="ok">✓</span> 빈 div, 빈 span 자동 제거<br>
-          <span class="ok">✓</span> HERO 이미지 모바일 반응형 변환 (가로 좁을 때 세로 확장)
+          <span class="ok">✓</span> HERO 이미지 모바일 반응형 변환
         </div>
       </div>
     </div>
@@ -123,7 +211,7 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
     </div>
   </div>
 
-  <!-- 오른쪽: 출력 영역 -->
+  <!-- 가운데: 출력 영역 -->
   <div class="output-panel">
     <div class="output-tabs">
       <button class="tab-btn active" onclick="switchOutputTab('code',this)">▸ CODE</button>
@@ -157,12 +245,666 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
       </div>
     </div>
   </div>
+
+  <!-- 오른쪽: 편집 사이드 패널 -->
+  <div class="editor-panel">
+    <div class="editor-header">
+      <span class="panel-title">▸ EDITOR</span>
+      <span class="panel-sub" id="editor-sub">선택 없음</span>
+    </div>
+    <div class="editor-body">
+
+      <!-- 메인 패널 -->
+      <div class="editor-pane active" id="pane-main">
+        <div class="selected-info">
+          <div class="selected-info-title">🎯 선택된 요소</div>
+          <div id="selected-display">
+            <div class="selected-info-empty">미리보기에서 요소를 클릭하세요<br>(2단계에서 활성화)</div>
+          </div>
+          <div class="selected-info-nav" id="selected-nav" style="display:none">
+            <button id="nav-parent" disabled>↑ 부모로</button>
+            <button id="nav-child" disabled>↓ 자식으로</button>
+          </div>
+        </div>
+
+        <div class="section-title">─── 효과 추가 ───</div>
+        <div class="effect-btn-grid">
+          <button class="effect-btn" onclick="openSubPane('animation')" disabled>
+            <span class="effect-btn-icon">🎬</span>애니메이션
+          </button>
+          <button class="effect-btn" onclick="openSubPane('shadow')" disabled>
+            <span class="effect-btn-icon">✨</span>빛 효과
+          </button>
+          <button class="effect-btn" onclick="openSubPane('text-shadow')" disabled>
+            <span class="effect-btn-icon">🔤</span>텍스트 효과
+          </button>
+          <button class="effect-btn" onclick="openSubPane('gradient')" disabled>
+            <span class="effect-btn-icon">🎨</span>그라데이션
+          </button>
+        </div>
+
+        <div class="section-title">⚙ 현재 적용된 효과</div>
+        <div class="applied-list" id="applied-list">
+          <div class="applied-empty">선택된 요소 없음</div>
+        </div>
+      </div>
+
+      <!-- 애니메이션 세부 패널 -->
+      <div class="editor-pane" id="pane-animation">
+        <div class="sub-pane-header">
+          <button class="back-btn" onclick="closeSubPane()">← 뒤로</button>
+          <span class="sub-pane-title">🎬 애니메이션</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">종류</span>
+          <select class="field-select" id="anim-name">
+            <option value="pulse">pulse</option>
+            <option value="flash">flash</option>
+            <option value="fadeIn">fadeIn</option>
+            <option value="bounce">bounce</option>
+            <option value="swing">swing</option>
+            <option value="spin">spin</option>
+            <option value="tada">tada</option>
+            <option value="wobble">wobble</option>
+            <option value="jello">jello</option>
+            <option value="flip">flip</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <span class="field-label">시간</span>
+          <select class="field-select" id="anim-duration">
+            <option>0.5s</option><option>1s</option><option>1.5s</option>
+            <option selected>1.8s</option><option>2s</option><option>2.5s</option>
+            <option>3s</option><option>4s</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <span class="field-label">타이밍</span>
+          <select class="field-select" id="anim-timing">
+            <option selected>ease-in-out</option>
+            <option>linear</option>
+            <option>ease-in</option>
+            <option>ease-out</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <span class="field-label">반복</span>
+          <select class="field-select" id="anim-iter">
+            <option selected>infinite</option>
+            <option value="1">1회</option>
+            <option value="2">2회</option>
+            <option value="3">3회</option>
+          </select>
+        </div>
+        <div class="impact-info" id="anim-impact">💡 적용 시 영향: 2단계에서 계산</div>
+        <div class="action-pair">
+          <button class="btn-success" onclick="alert('2단계에서 구현됩니다')">✓ 적용하기</button>
+          <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
+        </div>
+      </div>
+
+      <!-- 빛 효과 세부 패널 -->
+      <div class="editor-pane" id="pane-shadow">
+        <div class="sub-pane-header">
+          <button class="back-btn" onclick="closeSubPane()">← 뒤로</button>
+          <span class="sub-pane-title">✨ 빛 효과</span>
+        </div>
+        <div class="section-title">색상</div>
+        <div id="shadow-color-picker"></div>
+        <div class="field-row">
+          <span class="field-label">강도</span>
+          <select class="field-select" id="shadow-strength">
+            <option value="weak">약함</option>
+            <option value="medium" selected>중간</option>
+            <option value="strong">강함</option>
+            <option value="neon">네온 3겹</option>
+            <option value="custom">사용자 지정</option>
+          </select>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="shadow-inset">
+          <label for="shadow-inset">안쪽 빛 (inset)</label>
+        </div>
+        <div class="field-row" id="shadow-blur-row">
+          <span class="field-label">번짐</span>
+          <input type="range" class="field-slider" id="shadow-blur" min="0" max="40" value="12">
+          <span class="field-slider-val" id="shadow-blur-val">12px</span>
+        </div>
+        <div class="impact-info" id="shadow-impact">💡 적용 시 영향: 2단계에서 계산</div>
+        <div class="action-pair">
+          <button class="btn-success" onclick="alert('2단계에서 구현됩니다')">✓ 적용하기</button>
+          <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
+        </div>
+      </div>
+
+      <!-- 텍스트 효과 세부 패널 -->
+      <div class="editor-pane" id="pane-text-shadow">
+        <div class="sub-pane-header">
+          <button class="back-btn" onclick="closeSubPane()">← 뒤로</button>
+          <span class="sub-pane-title">🔤 텍스트 효과</span>
+        </div>
+        <div class="section-title">색상</div>
+        <div id="textshadow-color-picker"></div>
+        <div class="field-row">
+          <span class="field-label">강도</span>
+          <select class="field-select" id="textshadow-strength">
+            <option value="weak">약함</option>
+            <option value="medium" selected>중간</option>
+            <option value="strong">강함</option>
+            <option value="neon">네온 3겹</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <span class="field-label">번짐</span>
+          <input type="range" class="field-slider" id="textshadow-blur" min="0" max="30" value="10">
+          <span class="field-slider-val" id="textshadow-blur-val">10px</span>
+        </div>
+        <div class="impact-info">⚠ 텍스트는 inset 불가능</div>
+        <div class="action-pair">
+          <button class="btn-success" onclick="alert('2단계에서 구현됩니다')">✓ 적용하기</button>
+          <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
+        </div>
+      </div>
+
+      <!-- 그라데이션 세부 패널 -->
+      <div class="editor-pane" id="pane-gradient">
+        <div class="sub-pane-header">
+          <button class="back-btn" onclick="closeSubPane()">← 뒤로</button>
+          <span class="sub-pane-title">🎨 그라데이션</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">방향</span>
+          <select class="field-select" id="grad-direction">
+            <option value="180">세로 ↓ 180°</option>
+            <option value="90">가로 → 90°</option>
+            <option value="135" selected>대각선 135°</option>
+            <option value="45">대각선 45°</option>
+            <option value="custom">사용자 각도</option>
+          </select>
+        </div>
+        <div class="field-row" id="grad-custom-row" style="display:none">
+          <span class="field-label">각도</span>
+          <input type="range" class="field-slider" id="grad-angle" min="0" max="360" value="135">
+          <span class="field-slider-val" id="grad-angle-val">135°</span>
+        </div>
+        <div class="section-title">색상 정지점</div>
+        <div id="grad-stops"></div>
+        <button class="btn-secondary" style="padding:7px;font-size:10px" onclick="addGradStop()">+ 색상 추가</button>
+        <div class="impact-info">💡 적용 시 영향: 2단계에서 계산</div>
+        <div class="action-pair">
+          <button class="btn-success" onclick="alert('2단계에서 구현됩니다')">✓ 적용하기</button>
+          <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast">복사 완료!</div>
 
 <script>
-// 2단계에서 채워넣을 자리
+'use strict';
+
+// ============================================================
+// ⭐ 잔여 찌꺼기 방지 로직 (CORE - 글자수 한도 때문에 핵심!)
+// ============================================================
+
+/**
+ * 인라인 style 문자열을 객체로 파싱
+ * - 빈 항목, 빈 값, 콜론 없는 항목 모두 제거
+ * - 같은 키 중복 시 마지막 값 유지
+ */
+function parseInlineStyle(styleStr){
+  const map = {};
+  if(!styleStr || typeof styleStr !== 'string') return map;
+  const parts = styleStr.split(';');
+  for(let i=0; i<parts.length; i++){
+    const decl = parts[i].trim();
+    if(!decl) continue;
+    const colonIdx = decl.indexOf(':');
+    if(colonIdx === -1) continue;
+    const key = decl.slice(0, colonIdx).trim();
+    const val = decl.slice(colonIdx + 1).trim();
+    if(!key || !val) continue;
+    map[key] = val;
+  }
+  return map;
+}
+
+/**
+ * 스타일 객체를 문자열로 변환
+ * - 빈 객체면 빈 문자열 반환 (style 속성 자체 제거 신호)
+ * - 마지막 세미콜론 없음 (일관성)
+ */
+function stringifyInlineStyle(map){
+  if(!map || typeof map !== 'object') return '';
+  const entries = Object.entries(map).filter(([k,v]) => k && v && String(v).trim());
+  if(entries.length === 0) return '';
+  return entries.map(([k,v]) => k + ':' + String(v).trim()).join(';');
+}
+
+/**
+ * 인라인 style 문자열 정리 (외부 호출용)
+ * - 빈 항목 제거
+ * - ;; → ;
+ * - 빈 속성 (box-shadow:;) 제거
+ * - 중복 속성 정리
+ * - 끝 세미콜론 제거
+ */
+function cleanInlineStyle(styleStr){
+  return stringifyInlineStyle(parseInlineStyle(styleStr));
+}
+
+/**
+ * 요소에서 특정 CSS 속성 안전하게 제거
+ * - 제거 후 style이 비면 style 속성 자체를 제거
+ * - 여러 속성 한번에 가능 (배열 또는 단일 문자열)
+ */
+function removeStyleProperty(el, propOrProps){
+  if(!el || !el.getAttribute) return;
+  const props = Array.isArray(propOrProps) ? propOrProps : [propOrProps];
+  const map = parseInlineStyle(el.getAttribute('style') || '');
+  let changed = false;
+  for(const p of props){
+    if(p in map){
+      delete map[p];
+      changed = true;
+    }
+  }
+  if(!changed) return;
+  const finalStr = stringifyInlineStyle(map);
+  if(finalStr === '') el.removeAttribute('style');
+  else el.setAttribute('style', finalStr);
+}
+
+/**
+ * 요소에 CSS 속성 안전하게 설정 (단일 또는 객체)
+ * - 빈 값 ('', null, undefined)이면 해당 속성 제거
+ * - 결과적으로 style이 비면 속성 자체 제거
+ */
+function setStyleProperty(el, propOrObj, value){
+  if(!el || !el.getAttribute) return;
+  const map = parseInlineStyle(el.getAttribute('style') || '');
+  if(typeof propOrObj === 'string'){
+    if(value === '' || value == null) delete map[propOrObj];
+    else map[propOrObj] = String(value).trim();
+  } else if(propOrObj && typeof propOrObj === 'object'){
+    for(const [k,v] of Object.entries(propOrObj)){
+      if(v === '' || v == null) delete map[k];
+      else map[k] = String(v).trim();
+    }
+  }
+  const finalStr = stringifyInlineStyle(map);
+  if(finalStr === '') el.removeAttribute('style');
+  else el.setAttribute('style', finalStr);
+}
+
+// ============================================================
+// 자체 테스트 (개발 중 콘솔에서 확인 가능)
+// ============================================================
+window.__testCleanStyle = function(){
+  const tests = [
+    // [입력, 기대 출력, 설명]
+    ['color:red;;font-size:12px', 'color:red;font-size:12px', ';; 정리'],
+    ['color:red;box-shadow:;font-size:12px', 'color:red;font-size:12px', '빈 속성 제거'],
+    ['color:red;', 'color:red', '끝 세미콜론 제거'],
+    [';;;;', '', '세미콜론만 → 빈 문자열'],
+    ['  color  :  red  ;  ', 'color:red', '공백 정리'],
+    ['color:red;color:blue', 'color:blue', '중복 키 마지막 값'],
+    ['', '', '빈 입력'],
+    [null, '', 'null 입력'],
+    ['background:url(http://a.com/b.png?x=1&y=2);color:red', 'background:url(http://a.com/b.png?x=1&y=2);color:red', 'URL 콜론 보존'],
+  ];
+  let pass = 0, fail = 0;
+  tests.forEach(([input, expected, desc]) => {
+    const actual = cleanInlineStyle(input);
+    if(actual === expected){
+      pass++;
+      console.log('✓', desc, '→', JSON.stringify(actual));
+    } else {
+      fail++;
+      console.error('✗', desc, '\n  expected:', JSON.stringify(expected), '\n  actual:', JSON.stringify(actual));
+    }
+  });
+  console.log(`\n결과: ${pass}/${tests.length} 통과` + (fail ? `, ${fail} 실패` : ''));
+  return {pass, fail};
+};
+
+// ============================================================
+// NSSA 팔레트 + 색상 피커 공통 컴포넌트
+// ============================================================
+
+const NSSA_PALETTE = [
+  {hex:'#cc1f1f', name:'빨강'},
+  {hex:'#ff8800', name:'주황'},
+  {hex:'#ffd43b', name:'노랑'},
+  {hex:'#69db7c', name:'초록'},
+  {hex:'#74c0fc', name:'파랑'},
+  {hex:'#cc99ff', name:'보라'},
+  {hex:'#ffffff', name:'하양'},
+  {hex:'#0a0a0a', name:'검정'}
+];
+
+/**
+ * 색상 피커 인스턴스 생성
+ * @param {HTMLElement} container - 마운트할 부모 요소
+ * @param {object} opts - {initial: '#cc1f1f', alpha: 0.8, onChange: (rgba)=>{}}
+ * @returns {object} - {getRgba, getHex, getAlpha, setColor}
+ */
+function createColorPicker(container, opts){
+  opts = opts || {};
+  let hex = opts.initial || '#cc1f1f';
+  let alpha = (opts.alpha != null) ? opts.alpha : 1;
+  
+  container.innerHTML = '';
+  container.className = 'color-picker';
+  
+  // 미리보기 + native picker + hex 입력
+  const previewRow = document.createElement('div');
+  previewRow.className = 'color-preview-row';
+  previewRow.innerHTML = `
+    <div class="color-preview"><div class="color-preview-inner"></div></div>
+    <input type="color" class="color-native">
+    <input type="text" class="color-hex-input" maxlength="7" placeholder="#FFFFFF">
+  `;
+  container.appendChild(previewRow);
+  
+  const previewInner = previewRow.querySelector('.color-preview-inner');
+  const nativeInput = previewRow.querySelector('.color-native');
+  const hexInput = previewRow.querySelector('.color-hex-input');
+  
+  // 투명도 슬라이더
+  const alphaRow = document.createElement('div');
+  alphaRow.className = 'field-row';
+  alphaRow.innerHTML = `
+    <span class="field-label">투명도</span>
+    <input type="range" class="field-slider" min="0" max="100" value="${Math.round(alpha*100)}">
+    <span class="field-slider-val">${alpha.toFixed(2)}</span>
+  `;
+  container.appendChild(alphaRow);
+  const alphaSlider = alphaRow.querySelector('.field-slider');
+  const alphaVal = alphaRow.querySelector('.field-slider-val');
+  
+  // NSSA 팔레트 그리드
+  const palLabel = document.createElement('div');
+  palLabel.style.cssText = 'font-size:10px;color:#888;font-family:Share Tech Mono,monospace;letter-spacing:1px';
+  palLabel.textContent = 'NSSA 팔레트';
+  container.appendChild(palLabel);
+  
+  const palGrid = document.createElement('div');
+  palGrid.className = 'palette-grid';
+  NSSA_PALETTE.forEach(p => {
+    const sw = document.createElement('div');
+    sw.className = 'palette-swatch';
+    sw.style.background = p.hex;
+    sw.title = p.name + ' ' + p.hex;
+    sw.dataset.hex = p.hex;
+    sw.addEventListener('click', () => setColor(p.hex));
+    palGrid.appendChild(sw);
+  });
+  container.appendChild(palGrid);
+  
+  function hexToRgb(h){
+    h = h.replace('#','');
+    if(h.length === 3) h = h.split('').map(c=>c+c).join('');
+    if(!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+    return {
+      r: parseInt(h.slice(0,2),16),
+      g: parseInt(h.slice(2,4),16),
+      b: parseInt(h.slice(4,6),16)
+    };
+  }
+  
+  function getRgba(){
+    const rgb = hexToRgb(hex);
+    if(!rgb) return 'rgba(0,0,0,'+alpha+')';
+    return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+  }
+  
+  function render(){
+    previewInner.style.background = getRgba();
+    nativeInput.value = hex;
+    hexInput.value = hex.toUpperCase();
+    alphaSlider.value = Math.round(alpha*100);
+    alphaVal.textContent = alpha.toFixed(2);
+    palGrid.querySelectorAll('.palette-swatch').forEach(sw => {
+      sw.classList.toggle('active', sw.dataset.hex.toLowerCase() === hex.toLowerCase());
+    });
+  }
+  
+  function setColor(newHex, newAlpha){
+    if(newHex){
+      if(!newHex.startsWith('#')) newHex = '#' + newHex;
+      if(hexToRgb(newHex)) hex = newHex.toLowerCase();
+    }
+    if(newAlpha != null) alpha = Math.max(0, Math.min(1, newAlpha));
+    render();
+    if(opts.onChange) opts.onChange(getRgba());
+  }
+  
+  nativeInput.addEventListener('input', e => setColor(e.target.value));
+  hexInput.addEventListener('change', e => setColor(e.target.value));
+  alphaSlider.addEventListener('input', e => setColor(null, e.target.value/100));
+  
+  render();
+  
+  return {
+    getRgba,
+    getHex: () => hex,
+    getAlpha: () => alpha,
+    setColor
+  };
+}
+
+// ============================================================
+// 사이드 패널 (편집기) 제어
+// ============================================================
+
+let currentSubPane = null;
+let shadowPicker = null;
+let textShadowPicker = null;
+let gradStopPickers = [];
+
+function openSubPane(name){
+  document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('pane-' + name);
+  if(target) target.classList.add('active');
+  currentSubPane = name;
+  
+  // 첫 진입 시 색상 피커 초기화 (지연 마운트)
+  if(name === 'shadow' && !shadowPicker){
+    shadowPicker = createColorPicker(document.getElementById('shadow-color-picker'), {
+      initial:'#cc1f1f', alpha:0.8
+    });
+  }
+  if(name === 'text-shadow' && !textShadowPicker){
+    textShadowPicker = createColorPicker(document.getElementById('textshadow-color-picker'), {
+      initial:'#ffd43b', alpha:1
+    });
+  }
+  if(name === 'gradient' && gradStopPickers.length === 0){
+    initGradientStops();
+  }
+}
+
+function closeSubPane(){
+  document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-main').classList.add('active');
+  currentSubPane = null;
+}
+
+// 그라데이션 정지점 초기화
+function initGradientStops(){
+  const container = document.getElementById('grad-stops');
+  container.innerHTML = '';
+  gradStopPickers = [];
+  // 기본 2개: 시작/끝
+  addGradStop({color:'#cc1f1f', alpha:0.8, position:0, removable:false, label:'색상 1 (시작)'});
+  addGradStop({color:'#ffffff', alpha:1, position:100, removable:false, label:'색상 2 (끝)'});
+}
+
+function addGradStop(config){
+  const container = document.getElementById('grad-stops');
+  config = config || {color:'#74c0fc', alpha:1, position:50, removable:true, label:'중간 색상'};
+  
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'border:1px solid #e0e0e0;border-radius:5px;padding:8px;margin-bottom:6px;background:#fff';
+  
+  const head = document.createElement('div');
+  head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:10px;color:#666;font-family:Share Tech Mono,monospace';
+  const label = document.createElement('span');
+  label.textContent = config.label;
+  head.appendChild(label);
+  
+  if(config.removable){
+    const delBtn = document.createElement('button');
+    delBtn.className = 'applied-item-btn del';
+    delBtn.textContent = '✗ 제거';
+    delBtn.style.fontSize = '10px';
+    delBtn.addEventListener('click', () => {
+      const idx = gradStopPickers.findIndex(s => s.wrap === wrap);
+      if(idx !== -1) gradStopPickers.splice(idx, 1);
+      wrap.remove();
+    });
+    head.appendChild(delBtn);
+  }
+  wrap.appendChild(head);
+  
+  const pickerDiv = document.createElement('div');
+  wrap.appendChild(pickerDiv);
+  const picker = createColorPicker(pickerDiv, {initial: config.color, alpha: config.alpha});
+  
+  // 위치 슬라이더
+  const posRow = document.createElement('div');
+  posRow.className = 'field-row';
+  posRow.style.marginTop = '6px';
+  posRow.innerHTML = `
+    <span class="field-label">위치</span>
+    <input type="range" class="field-slider" min="0" max="100" value="${config.position}">
+    <span class="field-slider-val">${config.position}%</span>
+  `;
+  wrap.appendChild(posRow);
+  const posSlider = posRow.querySelector('.field-slider');
+  const posVal = posRow.querySelector('.field-slider-val');
+  posSlider.addEventListener('input', e => {
+    posVal.textContent = e.target.value + '%';
+  });
+  
+  container.appendChild(wrap);
+  gradStopPickers.push({
+    wrap,
+    picker,
+    getPosition: () => parseInt(posSlider.value, 10)
+  });
+}
+
+// 그라데이션 사용자 각도 표시 토글
+document.addEventListener('DOMContentLoaded', () => {
+  const dirSel = document.getElementById('grad-direction');
+  const customRow = document.getElementById('grad-custom-row');
+  if(dirSel && customRow){
+    dirSel.addEventListener('change', e => {
+      customRow.style.display = e.target.value === 'custom' ? 'flex' : 'none';
+    });
+    const angleSlider = document.getElementById('grad-angle');
+    const angleVal = document.getElementById('grad-angle-val');
+    if(angleSlider && angleVal){
+      angleSlider.addEventListener('input', e => {
+        angleVal.textContent = e.target.value + '°';
+      });
+    }
+  }
+  // shadow blur 슬라이더
+  const sb = document.getElementById('shadow-blur');
+  const sbv = document.getElementById('shadow-blur-val');
+  if(sb && sbv) sb.addEventListener('input', e => sbv.textContent = e.target.value + 'px');
+  // textshadow blur
+  const tsb = document.getElementById('textshadow-blur');
+  const tsbv = document.getElementById('textshadow-blur-val');
+  if(tsb && tsbv) tsb.addEventListener('input', e => tsbv.textContent = e.target.value + 'px');
+});
+
+// ============================================================
+// localStorage 자동 저장
+// ============================================================
+
+const AUTOSAVE_KEY = 'filemigrator_autosave_v1';
+const AUTOSAVE_INTERVAL = 5000;
+let lastSavedAt = 0;
+
+function autoSave(){
+  try {
+    const data = {
+      html: document.getElementById('input-html').value,
+      css: document.getElementById('input-css').value,
+      output: convertedHTML,
+      timestamp: Date.now()
+    };
+    // 용량 체크 (5MB 한도, 안전하게 4MB로 제한)
+    const json = JSON.stringify(data);
+    if(json.length > 4 * 1024 * 1024){
+      console.warn('[autosave] 용량 초과로 저장 생략');
+      return;
+    }
+    localStorage.setItem(AUTOSAVE_KEY, json);
+    lastSavedAt = Date.now();
+    showAutoSaveIndicator();
+  } catch(e){
+    console.warn('[autosave] 실패:', e);
+  }
+}
+
+function autoLoad(){
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(data.html) document.getElementById('input-html').value = data.html;
+    if(data.css) document.getElementById('input-css').value = data.css;
+    updateCounters();
+    if(data.timestamp){
+      const ago = Math.round((Date.now() - data.timestamp) / 1000);
+      const agoText = ago < 60 ? ago + '초 전' : Math.round(ago/60) + '분 전';
+      showToast('이전 작업물 복원됨 (' + agoText + ')');
+    }
+    return true;
+  } catch(e){
+    console.warn('[autoload] 실패:', e);
+    return false;
+  }
+}
+
+function showAutoSaveIndicator(){
+  const ind = document.getElementById('autosave-indicator');
+  const txt = document.getElementById('autosave-text');
+  ind.style.display = 'flex';
+  txt.textContent = '자동 저장됨 · 방금';
+  // 시간 표시 갱신
+  clearInterval(showAutoSaveIndicator._timer);
+  showAutoSaveIndicator._timer = setInterval(() => {
+    if(!lastSavedAt) return;
+    const sec = Math.round((Date.now() - lastSavedAt) / 1000);
+    if(sec < 5) txt.textContent = '자동 저장됨 · 방금';
+    else if(sec < 60) txt.textContent = '자동 저장됨 · ' + sec + '초 전';
+    else txt.textContent = '자동 저장됨 · ' + Math.round(sec/60) + '분 전';
+  }, 5000);
+}
+
+// 5초마다 저장 (입력 변화 있을 때만)
+let lastInputSnapshot = '';
+setInterval(() => {
+  const snap = document.getElementById('input-html').value + '||' + document.getElementById('input-css').value + '||' + convertedHTML;
+  if(snap !== lastInputSnapshot && snap.length > 0){
+    lastInputSnapshot = snap;
+    autoSave();
+  }
+}, AUTOSAVE_INTERVAL);
+
+// ============================================================
+// 기존 변환 로직 (그대로 유지)
+// ============================================================
+
 let convertedHTML = '';
 
 function switchOutputTab(name, btn){
@@ -196,7 +938,6 @@ function updateOutputCounter(){
   const pct = Math.min(100, (len/15000)*100);
   fill.style.width = pct + '%';
   if(len > 15000){ el.classList.add('danger'); fill.classList.add('danger'); }
-  else if(len > 13000){ el.classList.add('warn'); fill.classList.add('warn'); }
   else if(len > 10000){ el.classList.add('warn'); fill.classList.add('warn'); }
 }
 
@@ -204,6 +945,7 @@ document.getElementById('input-html').addEventListener('input', updateCounters);
 document.getElementById('input-css').addEventListener('input', updateCounters);
 
 function clearAll(){
+  if(!confirm('입력과 결과를 모두 지웁니다. 진행할까요?\n(자동 저장된 백업은 유지됩니다)')) return;
   document.getElementById('input-html').value = '';
   document.getElementById('input-css').value = '';
   document.getElementById('output-code').textContent = '';
@@ -214,32 +956,20 @@ function clearAll(){
   document.getElementById('preview-frame').style.display='none';
 }
 
-// ========== 변환 로직 ==========
-
 const ALLOWED_TAGS = ['div','p','span','b','i','strong','em','a','br','hr','img'];
 const ALLOWED_ATTRS = ['style','src','href','alt'];
 
-// CSS 파서: 셀렉터별 스타일 매핑 만들기
 function parseCSS(cssText){
   const rules = {};
   const mediaRules = {};
-  
-  // @keyframes 먼저 제거 (파싱에서 제외)
   cssText = cssText.replace(/@keyframes\s+[a-zA-Z_-][\w-]*\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/g, '');
   cssText = cssText.replace(/@-webkit-keyframes\s+[a-zA-Z_-][\w-]*\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/g, '');
-  
-  // @media 블록 추출 (max-width:768px 같은 모바일 우선)
   const mediaRegex = /@media[^{]*\{((?:[^{}]|\{[^}]*\})*)\}/g;
   let mediaMatch;
   while((mediaMatch = mediaRegex.exec(cssText)) !== null){
-    const mediaContent = mediaMatch[1];
-    parseRules(mediaContent, mediaRules);
+    parseRules(mediaMatch[1], mediaRules);
   }
-  
-  // @media 블록 제거 후 일반 규칙 파싱
-  const normalCSS = cssText.replace(mediaRegex, '');
-  parseRules(normalCSS, rules);
-  
+  parseRules(cssText.replace(mediaRegex, ''), rules);
   return { rules, mediaRules };
 }
 
@@ -257,48 +987,20 @@ function parseRules(cssText, target){
   }
 }
 
-// 셀렉터에서 매칭되는 스타일 가져오기 (id/class/태그)
 function getStylesForElement(el, ruleMap){
   const styles = [];
   const tag = el.tagName.toLowerCase();
-  
-  // 태그 셀렉터
   if(ruleMap[tag]) styles.push(ruleMap[tag]);
-  // body, * 등도 적용
   if(ruleMap['*']) styles.push(ruleMap['*']);
-  
-  // 클래스 셀렉터
   if(el.classList){
     el.classList.forEach(cls=>{
       if(ruleMap['.'+cls]) styles.push(ruleMap['.'+cls]);
     });
   }
-  
-  // id 셀렉터
   if(el.id && ruleMap['#'+el.id]) styles.push(ruleMap['#'+el.id]);
-  
   return styles.join(';');
 }
 
-// 스타일 문자열을 객체로 파싱
-function styleToObject(styleStr){
-  const obj = {};
-  if(!styleStr) return obj;
-  styleStr.split(';').forEach(decl=>{
-    const colonIdx = decl.indexOf(':');
-    if(colonIdx === -1) return;
-    const prop = decl.slice(0,colonIdx).trim();
-    const val = decl.slice(colonIdx+1).trim();
-    if(prop && val) obj[prop] = val;
-  });
-  return obj;
-}
-
-function objectToStyle(obj){
-  return Object.entries(obj).map(([k,v])=>k+':'+v).join(';');
-}
-
-// position:relative + top/left/bottom/right Npx 제거
 function removeGrapesAdjustments(styleObj){
   if(styleObj['position'] === 'relative'){
     const hasOffset = ['top','left','bottom','right'].some(prop=>{
@@ -316,17 +1018,12 @@ function removeGrapesAdjustments(styleObj){
   return styleObj;
 }
 
-// 커스텀 애니메이션 → pulse/flash 치환
 function normalizeAnimation(styleObj){
   if(styleObj['animation']){
     const v = styleObj['animation'];
-    // 첫 번째 토큰이 애니메이션 이름
     const tokens = v.split(/\s+/);
     const name = tokens[0];
-    if(['pulse','flash','fadeIn','none'].includes(name)){
-      // 그대로 유지
-    } else {
-      // 이름이 'glow', 'flash', 'blink', 'red' 등 의미 추측
+    if(!['pulse','flash','fadeIn','none'].includes(name)){
       const lower = name.toLowerCase();
       let replaced = 'pulse';
       if(lower.includes('flash') || lower.includes('blink') || lower.includes('classified')) replaced = 'flash';
@@ -335,7 +1032,6 @@ function normalizeAnimation(styleObj){
       styleObj['animation'] = tokens.join(' ');
     }
   }
-  // animation-name 단독 속성도 처리
   if(styleObj['animation-name'] && !['pulse','flash','fadeIn','none'].includes(styleObj['animation-name'])){
     const lower = styleObj['animation-name'].toLowerCase();
     if(lower.includes('flash') || lower.includes('blink')) styleObj['animation-name'] = 'flash';
@@ -344,9 +1040,7 @@ function normalizeAnimation(styleObj){
   return styleObj;
 }
 
-// HERO 이미지 감지 + 반응형 변환
 function applyHeroResponsive(el, styleObj){
-  // aspect-ratio가 있고 자식에 img가 있으면 HERO로 판단
   if(styleObj['aspect-ratio']){
     const hasImg = el.querySelector(':scope > img') !== null;
     if(hasImg){
@@ -355,28 +1049,26 @@ function applyHeroResponsive(el, styleObj){
       styleObj['width'] = styleObj['width'] || '100%';
       styleObj['position'] = 'relative';
       styleObj['overflow'] = 'hidden';
-      // 자식 img의 object-position도 강제 보정
       const img = el.querySelector(':scope > img');
       if(img){
-        const imgStyle = styleToObject(img.getAttribute('style')||'');
+        const imgStyle = parseInlineStyle(img.getAttribute('style')||'');
         if(imgStyle['object-position'] && imgStyle['object-position'] !== 'center top'){
           imgStyle['object-position'] = 'center top';
-          img.setAttribute('style', objectToStyle(imgStyle));
+          img.setAttribute('style', stringifyInlineStyle(imgStyle));
         }
       }
       return true;
     }
   }
-  // padding-bottom 고정 % 인 경우도 변환 시도
   if(styleObj['padding-bottom'] && /^\d+(\.\d+)?%$/.test(styleObj['padding-bottom'])){
     const hasImg = el.querySelector(':scope > img') !== null;
     if(hasImg){
       styleObj['padding-bottom'] = 'max(83%,min(125%,calc(220% - 50vw)))';
       const img = el.querySelector(':scope > img');
       if(img){
-        const imgStyle = styleToObject(img.getAttribute('style')||'');
+        const imgStyle = parseInlineStyle(img.getAttribute('style')||'');
         imgStyle['object-position'] = 'center top';
-        img.setAttribute('style', objectToStyle(imgStyle));
+        img.setAttribute('style', stringifyInlineStyle(imgStyle));
       }
       return true;
     }
@@ -384,19 +1076,15 @@ function applyHeroResponsive(el, styleObj){
   return false;
 }
 
-// 허용 안 된 태그 → div 변환
 function convertDisallowedTags(root){
   let count = 0;
-  const all = root.querySelectorAll('*');
-  all.forEach(el=>{
+  root.querySelectorAll('*').forEach(el=>{
     const tag = el.tagName.toLowerCase();
     if(!ALLOWED_TAGS.includes(tag)){
       const div = document.createElement('div');
-      // 속성 복사
       Array.from(el.attributes).forEach(attr=>{
         div.setAttribute(attr.name, attr.value);
       });
-      // 자식 이동
       while(el.firstChild) div.appendChild(el.firstChild);
       el.parentNode.replaceChild(div, el);
       count++;
@@ -405,7 +1093,6 @@ function convertDisallowedTags(root){
   return count;
 }
 
-// 빈 div / span 제거
 function removeEmptyElements(root){
   let count = 0;
   let changed = true;
@@ -413,20 +1100,14 @@ function removeEmptyElements(root){
     changed = false;
     const empties = root.querySelectorAll('div:empty, span:empty');
     empties.forEach(el=>{
-      // style이 시각적으로 의미 있는 빈 요소(점, 선)는 유지
       const style = el.getAttribute('style') || '';
       const hasVisual = /background|border|width|height/.test(style);
-      if(!hasVisual){
-        el.remove();
-        count++;
-        changed = true;
-      }
+      if(!hasVisual){ el.remove(); count++; changed = true; }
     });
   }
   return count;
 }
 
-// 허용 안 된 속성 제거
 function cleanAttributes(root){
   let count = 0;
   root.querySelectorAll('*').forEach(el=>{
@@ -440,95 +1121,57 @@ function cleanAttributes(root){
   return count;
 }
 
-// 메인 변환 함수
 function convert(){
   const inputHTML = document.getElementById('input-html').value.trim();
   const inputCSS = document.getElementById('input-css').value.trim();
+  if(!inputHTML && !inputCSS){ showToast('HTML 또는 CSS를 입력해주세요'); return; }
   
-  if(!inputHTML && !inputCSS){
-    showToast('HTML 또는 CSS를 입력해주세요');
-    return;
-  }
-  
-  const stats = {
-    idRemoved: 0, classRemoved: 0, mediaApplied: 0, animConverted: 0,
-    tagsConverted: 0, emptyRemoved: 0, attrsCleaned: 0, heroDetected: 0
-  };
-  
-  // 1. HTML 파싱
+  const stats = {idRemoved:0,classRemoved:0,mediaApplied:0,animConverted:0,tagsConverted:0,emptyRemoved:0,attrsCleaned:0,heroDetected:0};
   const parser = new DOMParser();
   const doc = parser.parseFromString(inputHTML || '<div></div>', 'text/html');
   
-  // 2. 내부 <style> 추출 → CSS와 합치기
   let allCSS = inputCSS;
-  doc.querySelectorAll('style').forEach(s=>{
-    allCSS += '\n' + s.textContent;
-    s.remove();
-  });
-  
-  // 3. <head>, <meta>, <link>, <title>, <script> 제거
+  doc.querySelectorAll('style').forEach(s=>{ allCSS += '\n' + s.textContent; s.remove(); });
   doc.querySelectorAll('meta, link, title, script, head').forEach(el=>el.remove());
   
-  // 4. CSS 파싱
   const { rules, mediaRules } = parseCSS(allCSS);
   stats.mediaApplied = Object.keys(mediaRules).length;
   
-  // 5. body 안의 모든 요소 순회 → 인라인 스타일 적용
   const body = doc.body || doc.documentElement;
   const allElements = [body, ...body.querySelectorAll('*')];
   
   allElements.forEach(el=>{
     if(el.tagName === 'BODY' || el.tagName === 'HTML') return;
-    
-    // 외부 CSS에서 스타일 모으기 (일반 → 모바일 순으로 적용 = 모바일 우선)
     let collectedStyle = getStylesForElement(el, rules);
     const mobileStyle = getStylesForElement(el, mediaRules);
     if(mobileStyle) collectedStyle = (collectedStyle ? collectedStyle + ';' : '') + mobileStyle;
-    
-    // 기존 인라인 style과 합치기 (인라인이 가장 우선)
     const existingInline = el.getAttribute('style') || '';
     const finalStyle = (collectedStyle ? collectedStyle + ';' : '') + existingInline;
     
-    // 객체로 변환 → 정리
-    let styleObj = styleToObject(finalStyle);
+    // ⭐ 잔여 찌꺼기 방지: parseInlineStyle 사용 (빈 속성 자동 제거)
+    let styleObj = parseInlineStyle(finalStyle);
     styleObj = removeGrapesAdjustments(styleObj);
     styleObj = normalizeAnimation(styleObj);
-    
-    // animation 속성이 변환되면 카운트
     if(styleObj['animation'] || styleObj['animation-name']) stats.animConverted++;
-    
-    // HERO 반응형 변환
     if(applyHeroResponsive(el, styleObj)) stats.heroDetected++;
     
-    // id/class 제거
     if(el.id){ stats.idRemoved++; el.removeAttribute('id'); }
     if(el.className){ stats.classRemoved++; el.removeAttribute('class'); }
     
-    // 최종 인라인 style 적용
-    const finalStr = objectToStyle(styleObj);
+    // ⭐ stringifyInlineStyle로 깔끔하게 출력 (빈 객체면 style 속성 제거)
+    const finalStr = stringifyInlineStyle(styleObj);
     if(finalStr) el.setAttribute('style', finalStr);
     else el.removeAttribute('style');
   });
   
-  // 6. 허용 안 된 태그 → div 변환
   stats.tagsConverted = convertDisallowedTags(body);
-  
-  // 7. 허용 안 된 속성 제거
   stats.attrsCleaned = cleanAttributes(body);
-  
-  // 8. 빈 요소 제거
   stats.emptyRemoved = removeEmptyElements(body);
   
-  // 9. body의 innerHTML만 추출
   let result = body.innerHTML.trim();
-  
-  // 10. 들여쓰기 정리 (가독성)
   result = result.replace(/>\s+</g, '><').replace(/\s{2,}/g,' ');
-  
-  // 11. 결과 저장 + 표시
   convertedHTML = result;
   
-  // 결과 코드 영역에 표시 + 처리 통계
   const statsHTML = 
     '/* ========== 변환 완료 ✓ ==========\n' +
     ' * id 제거: ' + stats.idRemoved + '개\n' +
@@ -541,23 +1184,17 @@ function convert(){
     ' * HERO 반응형 적용: ' + stats.heroDetected + '개\n' +
     ' * 최종 글자 수: ' + result.length.toLocaleString() + ' chars\n' +
     ' * ============================== */\n\n';
-  
   document.getElementById('output-code').textContent = statsHTML + result;
   
-  // 미리보기 업데이트
   const iframe = document.getElementById('preview-frame');
-  const emptyMsg = document.getElementById('preview-empty');
-  emptyMsg.style.display = 'none';
+  document.getElementById('preview-empty').style.display = 'none';
   iframe.style.display = 'block';
-  const previewWrapper = '<!DOCTYPE html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet"><style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}body{margin:0;background:#e8e8e8;}</style></head><body>' + result + '</body></html>';
-  iframe.srcdoc = previewWrapper;
+  iframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet"><style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes swing{20%{transform:rotate(15deg)}40%{transform:rotate(-10deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-5deg)}100%{transform:rotate(0)}}@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}@keyframes tada{0%,100%{transform:scale(1)}10%,20%{transform:scale(.9) rotate(-3deg)}30%,50%,70%,90%{transform:scale(1.1) rotate(3deg)}40%,60%,80%{transform:scale(1.1) rotate(-3deg)}}@keyframes wobble{0%,100%{transform:translateX(0)}15%{transform:translateX(-25%) rotate(-5deg)}30%{transform:translateX(20%) rotate(3deg)}45%{transform:translateX(-15%) rotate(-3deg)}60%{transform:translateX(10%) rotate(2deg)}75%{transform:translateX(-5%) rotate(-1deg)}}@keyframes jello{0%,11.1%,100%{transform:none}22.2%{transform:skewX(-12.5deg) skewY(-12.5deg)}33.3%{transform:skewX(6.25deg) skewY(6.25deg)}44.4%{transform:skewX(-3.125deg) skewY(-3.125deg)}55.5%{transform:skewX(1.5deg) skewY(1.5deg)}}@keyframes flip{from{transform:perspective(400px) rotateY(0)}to{transform:perspective(400px) rotateY(360deg)}}body{margin:0;background:#e8e8e8;}</style></head><body>' + result + '</body></html>';
   
-  // 글자 수 카운터 업데이트
   updateOutputCounter();
-  
   showToast('변환 완료! (' + result.length.toLocaleString() + ' chars)');
+  autoSave();
 }
-
 
 function copyOutput(){
   if(!convertedHTML){ showToast('변환된 결과가 없어요'); return; }
@@ -576,8 +1213,16 @@ function downloadOutput(){
   showToast('다운로드 시작');
 }
 
+// ============================================================
+// 초기 실행
+// ============================================================
 updateCounters();
 updateOutputCounter();
+autoLoad();  // 새로고침 후 작업물 복원
+
+// 콘솔 안내
+console.log('%c[FILE MIGRATOR] Phase 1 로드 완료', 'color:#1a6b3a;font-weight:bold');
+console.log('잔여 찌꺼기 방지 테스트: window.__testCleanStyle()');
 </script>
 </body>
 </html>
