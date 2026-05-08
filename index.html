@@ -1234,18 +1234,22 @@ function convert(){
     ' * HERO 반응형 적용: ' + stats.heroDetected + '개\n' +
     ' * 최종 글자 수: ' + result.length.toLocaleString() + ' chars\n' +
     ' * ============================== */\n\n';
-  document.getElementById('output-code').textContent = statsHTML + result;
+  // data-edit-id 주입 (편집용 ID, 복사할 땐 자동 제거됨)
+  const resultWithIds = injectEditIds(result);
   
-   const iframe = document.getElementById('preview-frame');
+  // 코드 영역에 data-edit-id 포함된 HTML 표시 (코드 하이라이트 매칭용)
+  document.getElementById('output-code').textContent = statsHTML + resultWithIds;
+  // 원본 텍스트 갱신 (highlightInCode가 매번 여기서 시작)
+  document.getElementById('output-code').dataset.original = statsHTML + resultWithIds;
+  
+  const iframe = document.getElementById('preview-frame');
   document.getElementById('preview-empty').style.display = 'none';
   iframe.style.display = 'block';
-  // data-edit-id 주입 + 클릭 감지 스크립트가 들어간 미리보기 생성
-  const resultWithIds = injectEditIds(result);
   iframe.srcdoc = buildPreviewWithClickHandler(resultWithIds);
+  
   // 선택 상태 초기화
   selectedEditId = null;
   updateSelectedInfo(null);
-  document.getElementById('output-code').dataset.original = '';
 
   updateOutputCounter();
   showToast('변환 완료! (' + result.length.toLocaleString() + ' chars)');
