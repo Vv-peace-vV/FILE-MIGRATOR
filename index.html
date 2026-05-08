@@ -1221,7 +1221,44 @@ if(h && /^\d+(\.\d+)?px$/.test(h)){
   
   // 14. white-space:normal 제거
   if(styleObj['white-space'] === 'normal') delete styleObj['white-space'];
+// 15. 색상 없는 개별 border 속성 정리
+['top','right','bottom','left'].forEach(side => {
+  // 색상이 명시 안 됐고
+  const hasColor = styleObj[`border-${side}-color`];
+  // 단축형도 없는데
+  const hasSideShorthand = styleObj[`border-${side}`];
+  // width나 style만 있으면
+  const hasWidth = styleObj[`border-${side}-width`];
+  const hasStyle = styleObj[`border-${side}-style`];
+  
+  if(!hasColor && !hasSideShorthand && (hasWidth || hasStyle)){
+    delete styleObj[`border-${side}-width`];
+    delete styleObj[`border-${side}-style`];
+  }
+});
+// 16. border-radius 0px 4방향 제거
+['top-left','top-right','bottom-left','bottom-right'].forEach(corner => {
+  const v = styleObj[`border-${corner}-radius`];
+  if(v === '0px' || v === '0'){
+    delete styleObj[`border-${corner}-radius`];
+  }
+});
 
+// 17. background-position 기본값 제거
+if(styleObj['background-position'] === '0px 0px' || styleObj['background-position'] === '0 0'){
+  delete styleObj['background-position'];
+}
+
+// 18. background-size 기본값 제거
+if(styleObj['background-size'] === 'auto auto' || styleObj['background-size'] === 'auto'){
+  delete styleObj['background-size'];
+}
+
+// 19. 회색 가짜 그라데이션 제거 (rgb(243,243,243) 같은 색이 1%, 100%)
+const bgImg = styleObj['background-image'];
+if(bgImg && /linear-gradient\(\s*rgb\((\d+),\s*\1,\s*\1\)[^,]*,\s*rgb\(\1,\s*\1,\s*\1\)/.test(bgImg)){
+  delete styleObj['background-image'];
+}
   return styleObj;
 }
 
