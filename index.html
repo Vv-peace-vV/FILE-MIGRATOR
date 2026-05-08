@@ -1236,11 +1236,17 @@ function convert(){
     ' * ============================== */\n\n';
   document.getElementById('output-code').textContent = statsHTML + result;
   
-  const iframe = document.getElementById('preview-frame');
+   const iframe = document.getElementById('preview-frame');
   document.getElementById('preview-empty').style.display = 'none';
   iframe.style.display = 'block';
-  iframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet"><style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes swing{20%{transform:rotate(15deg)}40%{transform:rotate(-10deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-5deg)}100%{transform:rotate(0)}}@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}@keyframes tada{0%,100%{transform:scale(1)}10%,20%{transform:scale(.9) rotate(-3deg)}30%,50%,70%,90%{transform:scale(1.1) rotate(3deg)}40%,60%,80%{transform:scale(1.1) rotate(-3deg)}}@keyframes wobble{0%,100%{transform:translateX(0)}15%{transform:translateX(-25%) rotate(-5deg)}30%{transform:translateX(20%) rotate(3deg)}45%{transform:translateX(-15%) rotate(-3deg)}60%{transform:translateX(10%) rotate(2deg)}75%{transform:translateX(-5%) rotate(-1deg)}}@keyframes jello{0%,11.1%,100%{transform:none}22.2%{transform:skewX(-12.5deg) skewY(-12.5deg)}33.3%{transform:skewX(6.25deg) skewY(6.25deg)}44.4%{transform:skewX(-3.125deg) skewY(-3.125deg)}55.5%{transform:skewX(1.5deg) skewY(1.5deg)}}@keyframes flip{from{transform:perspective(400px) rotateY(0)}to{transform:perspective(400px) rotateY(360deg)}}body{margin:0;background:#e8e8e8;}</style></head><body>' + result + '</body></html>';
-  
+  // data-edit-id 주입 + 클릭 감지 스크립트가 들어간 미리보기 생성
+  const resultWithIds = injectEditIds(result);
+  iframe.srcdoc = buildPreviewWithClickHandler(resultWithIds);
+  // 선택 상태 초기화
+  selectedEditId = null;
+  updateSelectedInfo(null);
+  document.getElementById('output-code').dataset.original = '';
+
   updateOutputCounter();
   showToast('변환 완료! (' + result.length.toLocaleString() + ' chars)');
   autoSave();
@@ -1248,12 +1254,15 @@ function convert(){
 
 function copyOutput(){
   if(!convertedHTML){ showToast('변환된 결과가 없어요'); return; }
-  navigator.clipboard.writeText(convertedHTML).then(()=>showToast('복사 완료!'));
+  // data-edit-id는 편집용이니까 복사할 땐 제거
+  const cleanHTML = stripEditIds(convertedHTML);
+  navigator.clipboard.writeText(cleanHTML).then(()=>showToast('복사 완료! (' + cleanHTML.length.toLocaleString() + ' chars)'));
 }
 
 function downloadOutput(){
   if(!convertedHTML){ showToast('변환된 결과가 없어요'); return; }
-  const blob = new Blob([convertedHTML], {type:'text/html'});
+  const cleanHTML = stripEditIds(convertedHTML);
+  const blob = new Blob([cleanHTML], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1262,6 +1271,7 @@ function downloadOutput(){
   URL.revokeObjectURL(url);
   showToast('다운로드 시작');
 }
+
 
 // ============================================================
 // 인풋 패널 접기/펼치기
