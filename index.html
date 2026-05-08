@@ -267,8 +267,11 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
         </div>
       </div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-secondary" style="padding:6px 12px;font-size:10px;flex:none;" onclick="copyOutput()">📋 복사</button>
-        <button class="btn btn-secondary" style="padding:6px 12px;font-size:10px;flex:none;" onclick="downloadOutput()">⬇ 다운로드</button>
+  <button id="undo-btn" class="btn btn-secondary" style="padding:6px 10px;font-size:10px;flex:none;" onclick="undo()" title="Ctrl+Z" disabled>↩️</button>
+  <button id="redo-btn" class="btn btn-secondary" style="padding:6px 10px;font-size:10px;flex:none;" onclick="redo()" title="Ctrl+Y" disabled>↪️</button>
+  <button class="btn btn-secondary" style="padding:6px 12px;font-size:10px;flex:none;" onclick="copyOutput()">📋 복사</button>
+  <button class="btn btn-secondary" style="padding:6px 12px;font-size:10px;flex:none;" onclick="downloadOutput()">⬇ 다운로드</button>
+</div>
       </div>
     </div>
     <div class="output-split">
@@ -459,11 +462,11 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
           <span class="field-slider-val" id="textshadow-blur-val">10px</span>
         </div>
         <div class="impact-info">⚠ 텍스트는 inset 불가능</div>
-        <div class="action-pair">
-          <button class="btn-success" onclick="applyTextShadow()">✓ 적용하기</button>
-          <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
-        </div>
-      </div>
+<div class="action-pair">
+  <button class="btn-success" onclick="applyTextColor()" style="background:#74c0fc">🔤 글자색</button>
+  <button class="btn-success" onclick="applyTextShadow()">✓ 그림자</button>
+  <button class="btn-secondary" onclick="closeSubPane()">✗</button>
+</div>
 
       <!-- 그라데이션 세부 패널 -->
       <div class="editor-pane" id="pane-gradient">
@@ -1264,6 +1267,7 @@ function convert(){
 
   updateOutputCounter();
   showToast('변환 완료! (' + result.length.toLocaleString() + ' chars)');
+  pushHistory();
   autoSave();
 }
 
@@ -1649,6 +1653,7 @@ function removeStyleFromSelected(prop){
   
   updateAppliedList(el);
   highlightInCode(selectedEditId);
+  pushHistory();
   autoSave();
   
   showToast('제거됨: ' + prop);
@@ -1705,6 +1710,7 @@ function applyStyleToSelected(styleChanges){
   highlightInCode(selectedEditId);
   
   // 7. 자동 저장 트리거
+  pushHistory();
   autoSave();
 }
 
@@ -1841,6 +1847,20 @@ function applyTextShadow(){
   showToast('텍스트 효과 적용!');
   closeSubPane();
 }
+  // ============================================================
+// 🔤 글자색 (color) 적용
+// ============================================================
+function applyTextColor(){
+  if(!textShadowPicker){ showToast('색상 피커가 준비 안 됐어요'); return; }
+  
+  const rgba = textShadowPicker.getRgba();
+  
+  applyStyleToSelected({ 'color': rgba });
+  
+  showToast('글자색 적용!');
+  closeSubPane();
+}
+
 // ============================================================
 // 🎨 그라데이션 (background) 적용
 // ============================================================
@@ -1973,6 +1993,7 @@ function applyCodeEdit(){
   updateOutputCounter();
   
   // 자동 저장
+  pushHistory(); 
   autoSave();
   
   // 상태 표시
@@ -1983,7 +2004,90 @@ function applyCodeEdit(){
   selectedEditId = null;
   updateSelectedInfo(null);
 }
+// ============================================================
+// ↩️ Undo/Redo 히스토리 시스템
+// ============================================================
+let historyStack = [];
+let historyIndex = -1;
+const HISTORY_MAX = 10;
 
+function pushHistory(){
+  // 현재 상태 저장
+  const snapshot = convertedHTML || '';
+  
+  // 마지막 상태랑 같으면 저장 안 함 (중복 방지)
+  if(historyIndex >= 0 && historyStack[historyIndex] === snapshot) return;
+  
+  // 현재 위치 이후의 redo 히스토리 잘라내기
+  historyStack = historyStack.slice(0, historyIndex + 1);
+  historyStack.push(snapshot);
+  
+  // 최대 개수 넘으면 오래된 것부터 제거
+  if(historyStack.length > HISTORY_MAX){
+    historyStack.shift();
+  } else {
+    historyIndex++;
+  }
+  
+  updateHistoryButtons();
+}
+
+function undo(){
+  if(historyIndex <= 0){
+    showToast('더 되돌릴 수 없어요');
+    return;
+  }
+  historyIndex--;
+  restoreHistory();
+  showToast('↩️ 되돌리기 (' + (historyIndex + 1) + '/' + historyStack.length + ')');
+}
+
+function redo(){
+  if(historyIndex >= historyStack.length - 1){
+    showToast('더 앞으로 갈 수 없어요');
+    return;
+  }
+  historyIndex++;
+  restoreHistory();
+  showToast('↪️ 다시 실행 (' + (historyIndex + 1) + '/' + historyStack.length + ')');
+}
+
+function restoreHistory(){
+  const snapshot = historyStack[historyIndex];
+  convertedHTML = snapshot;
+  
+  // 코드창 갱신
+  const codeEl = document.getElementById('output-code');
+  if(codeEl){
+    const oldText = codeEl.dataset.original || codeEl.textContent;
+    const headerMatch = oldText.match(/^\/\*[\s\S]*?\*\/\n*/);
+    let header = headerMatch ? headerMatch[0] : '';
+    const cleanLength = stripEditIds(snapshot).length;
+    header = header.replace(/(\* 최종 글자 수: )[\d,]+( chars)/, '$1' + cleanLength.toLocaleString() + '$2');
+    codeEl.textContent = header + snapshot;
+    codeEl.dataset.original = header + snapshot;
+  }
+  
+  // 프리뷰 갱신
+  const iframe = document.getElementById('preview-frame');
+  if(iframe && snapshot){
+    iframe.srcdoc = buildPreviewWithClickHandler(snapshot);
+  }
+  
+  // 카운터, 선택 상태 갱신
+  updateOutputCounter();
+  selectedEditId = null;
+  updateSelectedInfo(null);
+  updateHistoryButtons();
+  autoSave();
+}
+
+function updateHistoryButtons(){
+  const undoBtn = document.getElementById('undo-btn');
+  const redoBtn = document.getElementById('redo-btn');
+  if(undoBtn) undoBtn.disabled = historyIndex <= 0;
+  if(redoBtn) redoBtn.disabled = historyIndex >= historyStack.length - 1;
+}
 // ============================================================
 // iframe → 부모창 메시지 수신 + 키보드 단축키
 // ============================================================
@@ -1998,7 +2102,27 @@ window.addEventListener('message', e => {
 
 document.addEventListener('keydown', e => {
   const ae = document.activeElement;
-  if(ae && /INPUT|TEXTAREA/.test(ae.tagName)) return;
+  const inEditable = ae && (/INPUT|TEXTAREA/.test(ae.tagName) || ae.isContentEditable);
+  
+  // Ctrl+Z (Undo) - 어디서든 동작 (코드 편집창 포함은 제외)
+  if((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')){
+    if(!inEditable){
+      e.preventDefault();
+      undo();
+      return;
+    }
+  }
+  // Ctrl+Y or Ctrl+Shift+Z (Redo)
+  if((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z')))){
+    if(!inEditable){
+      e.preventDefault();
+      redo();
+      return;
+    }
+  }
+  
+  // 인풋/텍스트에리어 안에선 다른 단축키 무시
+  if(inEditable) return;
   
   if(e.key === 'Escape'){
     if(selectedEditId != null){
