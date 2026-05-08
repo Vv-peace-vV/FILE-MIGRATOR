@@ -2068,7 +2068,10 @@ function redo(){
 }
 
 function restoreHistory(){
-  const snapshot = historyStack[historyIndex];
+   let snapshot = historyStack[historyIndex];
+  if(!snapshot.includes('data-edit-id')){
+    snapshot = injectEditIds(snapshot);
+  }
   convertedHTML = snapshot;
   
   // 코드창 갱신
