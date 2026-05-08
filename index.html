@@ -1088,6 +1088,45 @@ function removeGrapesAdjustments(styleObj){
   return styleObj;
 }
 
+  function cleanRedundantStyles(styleObj){
+  // 1. 0px 4방향 시리즈 제거 (margin, padding)
+  ['margin','padding'].forEach(prefix => {
+    ['top','right','bottom','left'].forEach(side => {
+      const key = prefix + '-' + side;
+      if(styleObj[key] === '0px' || styleObj[key] === '0') delete styleObj[key];
+    });
+  });
+  
+  // 2. 단축형 0 시리즈 제거
+  ['margin','padding'].forEach(key => {
+    const v = styleObj[key];
+    if(v && /^(0px\s*)+$|^0$/.test(v.trim())) delete styleObj[key];
+  });
+  
+  // 3. 의미없는 기본값 제거
+  if(styleObj['box-sizing'] === 'border-box') delete styleObj['box-sizing'];
+  if(styleObj['vertical-align'] === 'top' || styleObj['vertical-align'] === 'baseline') delete styleObj['vertical-align'];
+  if(styleObj['text-align'] === 'left') delete styleObj['text-align'];
+  if(styleObj['font-weight'] === '400' || styleObj['font-weight'] === 'normal') delete styleObj['font-weight'];
+  
+  // 4. 검정색(기본값) 제거
+  const c = styleObj['color'];
+  if(c && (c === '#000' || c === '#000000' || c === 'black' || /^rgba?\(\s*0\s*,\s*0\s*,\s*0\s*(,\s*1\s*)?\)$/.test(c.replace(/\s/g,'')))){
+    delete styleObj['color'];
+  }
+  
+  // 5. line-height px → 1.7로 변환 (한글 가독성)
+  const lh = styleObj['line-height'];
+  if(lh && /^\d+(\.\d+)?px$/.test(lh)){
+    styleObj['line-height'] = '1.7';
+  }
+  
+  // 6. flex:1 1 0% → flex:1 단축
+  if(styleObj['flex'] === '1 1 0%' || styleObj['flex'] === '1 1 0') styleObj['flex'] = '1';
+  
+  return styleObj;
+}
+
 function normalizeAnimation(styleObj){
   if(styleObj['animation']){
     const v = styleObj['animation'];
@@ -1221,6 +1260,7 @@ function convert(){
     // ⭐ 잔여 찌꺼기 방지: parseInlineStyle 사용 (빈 속성 자동 제거)
     let styleObj = parseInlineStyle(finalStyle);
     styleObj = removeGrapesAdjustments(styleObj);
+    styleObj = cleanRedundantStyles(styleObj);   
     styleObj = normalizeAnimation(styleObj);
     if(styleObj['animation'] || styleObj['animation-name']) stats.animConverted++;
     if(applyHeroResponsive(el, styleObj)) stats.heroDetected++;
