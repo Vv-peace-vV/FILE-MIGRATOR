@@ -1300,10 +1300,17 @@ if(styleObj['background-size'] === 'auto auto' || styleObj['background-size'] ==
   delete styleObj['background-size'];
 }
 
-// 19. 회색 가짜 그라데이션 제거 (rgb(243,243,243) 같은 색이 1%, 100%)
+// 19. 회색 가짜 그라데이션 → background-color로 변환 (덮어쓰기)
 const bgImg = styleObj['background-image'];
-if(bgImg && /linear-gradient\(\s*rgb\((\d+),\s*\1,\s*\1\)[^,]*,\s*rgb\(\1,\s*\1,\s*\1\)/.test(bgImg)){
-  delete styleObj['background-image'];
+if(bgImg){
+  // rgb(N,N,N) 같은 색이 1%, 100% 패턴
+  const match = bgImg.match(/linear-gradient\(\s*(rgb\(\d+,\s*\d+,\s*\d+\)|#[0-9a-f]{3,8})[^,]*,\s*\1/i);
+  if(match){
+    // 가짜 그라데이션이면 단색으로 치환
+    styleObj['background-color'] = match[1];
+    delete styleObj['background-image'];
+    delete styleObj['background']; // 기존 background도 덮어쓰기 위해 삭제
+  }
 }
     // 20. rgba/rgb → HEX 단축 (모든 색상 속성에 적용)
     
