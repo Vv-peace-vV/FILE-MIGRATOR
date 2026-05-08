@@ -2054,7 +2054,12 @@ function applyBorder(){
   if(!borderPicker){ showToast('색상 피커가 준비 안 됐어요'); return; }
   
   const rgba = borderPicker.getRgba();
-  const colorStr = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.a})`;
+  
+  const r = rgba.r ?? 0;
+  const g = rgba.g ?? 0;
+  const b = rgba.b ?? 0;
+  const a = rgba.a ?? 1;
+  const colorStr = `rgba(${r}, ${g}, ${b}, ${a})`;
   
   const side = document.getElementById('border-side').value;
   const width = document.getElementById('border-width').value || '1';
@@ -2066,6 +2071,7 @@ function applyBorder(){
   applyStyleToSelected({ [property]: value });
   showToast(`✓ ${property} 적용됨`);
 }
+
 
 function removeBorder(){
   if(!selectedEditId){ showToast('요소를 먼저 선택하세요!'); return; }
