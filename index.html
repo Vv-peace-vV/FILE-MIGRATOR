@@ -480,10 +480,11 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
         <div class="section-title">색상 정지점</div>
         <div id="grad-stops"></div>
         <button class="btn-secondary" style="padding:7px;font-size:10px" onclick="addGradStop()">+ 색상 추가</button>
-       <div class="impact-info">💡 옵션 선택 후 [적용하기]</div>
+      <div class="impact-info">💡 단색은 첫 번째 색상만 사용</div>
 <div class="action-pair">
-  <button class="btn-success" onclick="applyGradient()">✓ 적용하기</button>
-  <button class="btn-secondary" onclick="closeSubPane()">✗ 취소</button>
+  <button class="btn-success" onclick="applySolidColor()" style="background:#74c0fc">⚡ 단색</button>
+  <button class="btn-success" onclick="applyGradient()">✓ 그라데이션</button>
+  <button class="btn-secondary" onclick="closeSubPane()">✗</button>
 </div>
 
       </div>
@@ -1864,6 +1865,23 @@ function applyGradient(){
   applyStyleToSelected({ 'background': gradientValue });
   
   showToast('그라데이션 적용! (' + stops.length + '개 색상)');
+  closeSubPane();
+}
+// ============================================================
+// ⚡ 단색 배경 (background) 적용
+// ============================================================
+function applySolidColor(){
+  if(gradStopPickers.length < 1){
+    showToast('색상이 없어요');
+    return;
+  }
+  
+  // 첫 번째 색상 정지점의 RGBA 사용
+  const rgba = gradStopPickers[0].picker.getRgba();
+  
+  applyStyleToSelected({ 'background': rgba });
+  
+  showToast('단색 배경 적용!');
   closeSubPane();
 }
 
