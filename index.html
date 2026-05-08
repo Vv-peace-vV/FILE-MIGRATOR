@@ -1150,7 +1150,38 @@ function removeGrapesAdjustments(styleObj){
       if(styleObj[key] === '0px' || styleObj[key] === '0') delete styleObj[key];
     });
   });
+  // 1-2. padding/margin 4방향 동일 → 단축형
+['margin','padding'].forEach(prefix => {
+  const t = styleObj[`${prefix}-top`];
+  const r = styleObj[`${prefix}-right`];
+  const b = styleObj[`${prefix}-bottom`];
+  const l = styleObj[`${prefix}-left`];
   
+  if(t && r && b && l){
+    if(t === r && r === b && b === l){
+      // 4면 동일 → padding:Xpx
+      styleObj[prefix] = t;
+      delete styleObj[`${prefix}-top`];
+      delete styleObj[`${prefix}-right`];
+      delete styleObj[`${prefix}-bottom`];
+      delete styleObj[`${prefix}-left`];
+    } else if(t === b && r === l){
+      // 상하/좌우 동일 → padding:Xpx Ypx
+      styleObj[prefix] = `${t} ${r}`;
+      delete styleObj[`${prefix}-top`];
+      delete styleObj[`${prefix}-right`];
+      delete styleObj[`${prefix}-bottom`];
+      delete styleObj[`${prefix}-left`];
+    } else if(r === l){
+      // 좌우만 동일 → padding:Xpx Ypx Zpx
+      styleObj[prefix] = `${t} ${r} ${b}`;
+      delete styleObj[`${prefix}-top`];
+      delete styleObj[`${prefix}-right`];
+      delete styleObj[`${prefix}-bottom`];
+      delete styleObj[`${prefix}-left`];
+    }
+  }
+});
   // 2. 단축형 0 시리즈 제거
   ['margin','padding'].forEach(key => {
     const v = styleObj[key];
@@ -1162,6 +1193,15 @@ function removeGrapesAdjustments(styleObj){
   if(styleObj['vertical-align'] === 'top' || styleObj['vertical-align'] === 'baseline') delete styleObj['vertical-align'];
   if(styleObj['text-align'] === 'left') delete styleObj['text-align'];
   if(styleObj['font-weight'] === '400' || styleObj['font-weight'] === 'normal') delete styleObj['font-weight'];
+    // 3-2. flex 컨테이너 기본값 제거
+if(styleObj['flex-direction'] === 'row') delete styleObj['flex-direction'];
+if(styleObj['align-items'] === 'stretch') delete styleObj['align-items'];
+if(styleObj['justify-content'] === 'flex-start') delete styleObj['justify-content'];
+if(styleObj['flex-wrap'] === 'nowrap') delete styleObj['flex-wrap'];
+
+// 3-3. background 기본값
+if(styleObj['background-repeat'] === 'repeat') delete styleObj['background-repeat'];
+if(styleObj['background-attachment'] === 'scroll') delete styleObj['background-attachment'];
   
   // 4. 검정색(기본값) 제거
   const c = styleObj['color'];
@@ -1174,9 +1214,15 @@ function removeGrapesAdjustments(styleObj){
   if(lh && /^\d+(\.\d+)?px$/.test(lh)){
     styleObj['line-height'] = '1.7';
   }
+    
   
   // 6. flex:1 1 0% → flex:1 단축
   if(styleObj['flex'] === '1 1 0%' || styleObj['flex'] === '1 1 0') styleObj['flex'] = '1';
+    // 6-2. flex 단축형
+if(styleObj['flex'] === '0 0 auto') styleObj['flex'] = 'none';
+if(styleObj['flex'] === '1 1 auto') styleObj['flex'] = 'auto';
+if(styleObj['flex'] === '0 1 auto') delete styleObj['flex']; // 기본값
+
   // 7. height:NNpx → min-height:NNpx 변환 (텍스트 흘러넘침 방지)
 const h = styleObj['height'];
 if(h && /^\d+(\.\d+)?px$/.test(h)){
@@ -1259,6 +1305,51 @@ const bgImg = styleObj['background-image'];
 if(bgImg && /linear-gradient\(\s*rgb\((\d+),\s*\1,\s*\1\)[^,]*,\s*rgb\(\1,\s*\1,\s*\1\)/.test(bgImg)){
   delete styleObj['background-image'];
 }
+    // 20. rgba/rgb → HEX 단축 (모든 색상 속성에 적용)
+    
+function rgbToHex(match){
+  // rgb(R,G,B) 또는 rgba(R,G,B,A) 매칭
+  const m = match.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/);
+  if(!m) return match;
+  const r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+  const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+  
+  if(r > 255 || g > 255 || b > 255) return match; // 잘못된 값
+  
+  const toHex = n => n.toString(16).padStart(2,'0');
+  let hex = '#' + toHex(r) + toHex(g) + toHex(b);
+  
+  // 알파값 처리
+  if(a < 1){
+    const alphaHex = Math.round(a * 255).toString(16).padStart(2,'0');
+    hex += alphaHex;
+  }
+  
+  // 3자리 단축 가능한지 체크 (#aabbcc → #abc, 알파 없을 때만)
+  if(a >= 1 && hex[1]===hex[2] && hex[3]===hex[4] && hex[5]===hex[6]){
+    hex = '#' + hex[1] + hex[3] + hex[5];
+  }
+  
+  return hex;
+}
+
+// 모든 속성값에서 rgb/rgba 패턴 변환 (단순 색상 속성)
+Object.keys(styleObj).forEach(key => {
+  const v = styleObj[key];
+  if(typeof v !== 'string') return;
+  // rgb()/rgba() 모든 인스턴스 변환 (gradient 안에 있는 것도 포함)
+  if(/rgba?\([^)]+\)/.test(v)){
+    styleObj[key] = v.replace(/rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)/g, rgbToHex);
+  }
+});
+// 21. 0 단위 제거 (0px → 0)
+Object.keys(styleObj).forEach(key => {
+  const v = styleObj[key];
+  if(typeof v !== 'string') return;
+  // "0px", "0em", "0rem", "0%" → "0" (앞에 공백/콤마/시작 위치)
+  styleObj[key] = v.replace(/(^|[\s,(])0(?:px|em|rem|%)(?=[\s,)]|$)/g, '$10');
+});
+    
   return styleObj;
 }
 
