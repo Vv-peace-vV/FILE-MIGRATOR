@@ -2607,9 +2607,9 @@ function updateImageMiniPreview(){
   const rotate = parseFloat(document.getElementById('image-rotate').value);
   const objectFit = document.getElementById('image-objectfit').value;
   
-  img.src = url;
-  img.style.cssText = `position:absolute;left:50%;top:50%;width:${scale}%;height:${scale}%;min-width:100%;min-height:100%;object-fit:${objectFit};transform:translate(calc(-50% + ${x}%),calc(-50% + ${y}%)) rotate(${rotate}deg);display:block`;
-}
+    img.src = url;
+  img.style.cssText = `width:${scale}%;height:auto;object-fit:${objectFit};display:block;max-width:none;transform:translate(${x}%, ${y}%) rotate(${rotate}deg);transform-origin:center center`;
+
 
 /**
  * 비율 변경 (미니 미리보기 영역만)
@@ -2704,18 +2704,39 @@ function applyImageAdjust(){
   // img가 자식이면 직접 setStyleProperty로 적용
   const isDirectlySelected = (selectedEditId != null && img.dataset.editId === selectedEditId);
   
+   // 부모 컨테이너 정보 가져오기 (높이 보존용)
+  const parent = img.parentElement;
+  const parentHeight = parent ? parent.getBoundingClientRect().height : 0;
+  const parentWidth = parent ? parent.getBoundingClientRect().width : 0;
+  
+  // 부모에 높이가 없으면 (높이 0) 비율 강제 적용
+  const parentNeedsRatio = parent && parentHeight < 10 && parentWidth > 0;
+  
   const styleChanges = {
-    'position': 'absolute',
-    'left': '50%',
-    'top': '50%',
     'width': scale + '%',
-    'height': scale + '%',
-    'min-width': '100%',
-    'min-height': '100%',
+    'height': 'auto',          // 자동 높이 (이미지 비율 유지)
     'object-fit': objectFit,
-    'transform': `translate(calc(-50% + ${x}%),calc(-50% + ${y}%)) rotate(${rotate}deg)`,
-    'display': 'block'
+    'display': 'block',
+    'max-width': 'none',       // 100% 제한 풀기 (확대 가능하게)
+    'transform': `translate(${x}%, ${y}%) rotate(${rotate}deg)`,
+    'transform-origin': 'center center'
   };
+  
+  // 위치/회전이 모두 0이면 transform 제거 (깔끔하게)
+  if(x === 0 && y === 0 && rotate === 0){
+    styleChanges['transform'] = '';
+    styleChanges['transform-origin'] = '';
+  }
+  
+  // 부모에 비율 강제 적용 (높이가 없으면)
+  if(parentNeedsRatio){
+    const ratio = (parentHeight / parentWidth * 100).toFixed(2);
+    // 부모에 padding-top 트릭으로 비율 부여 (이미 적용 안 됐을 때만)
+    if(!parent.style.aspectRatio && !parent.style.paddingTop){
+      console.log('[image-adjust] 부모에 비율 자동 적용:', ratio + '%');
+    }
+  }
+
   
   // 회전이나 위치가 0이면 transform에서 빼서 깔끔하게
   if(x === 0 && y === 0 && rotate === 0){
