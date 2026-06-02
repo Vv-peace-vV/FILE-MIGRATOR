@@ -2517,11 +2517,59 @@ function loadImageAdjustState(){
   document.getElementById('image-rotate-num').value = rotate;
   document.getElementById('image-objectfit').value = imageAdjustState.objectFit;
   
-  info.textContent = '✓ 대상: <img> · ' + (img.src.length > 40 ? img.src.slice(0, 40) + '...' : img.src);
+    info.textContent = '✓ 대상: <img> · ' + (img.src.length > 40 ? img.src.slice(0, 40) + '...' : img.src);
   info.className = 'impact-info';
+  
+  // ↓↓↓ 추가: 부모 컨테이너 비율을 미니 미리보기에 자동 적용 ↓↓↓
+  autoSetMiniPreviewRatio(img);
+  // ↑↑↑ 여기까지 ↑↑↑
   
   updateImageMiniPreview();
   return true;
+}
+/**
+ * 부모 컨테이너의 실제 비율을 감지해서 미니 미리보기에 적용
+ */
+function autoSetMiniPreviewRatio(img){
+  if(!img) return;
+  
+  const parent = img.parentElement;
+  if(!parent){
+    return;
+  }
+  
+  // 부모의 실제 렌더링된 크기 가져오기
+  const rect = parent.getBoundingClientRect();
+  if(rect.width === 0 || rect.height === 0){
+    return;
+  }
+  
+  // 비율 계산 (소수점 2자리)
+  const ratio = (rect.width / rect.height).toFixed(3);
+  const ratioStr = rect.width + ' / ' + rect.height;
+  
+  // 미니 미리보기에 직접 비율 적용
+  const wrap = document.getElementById('image-mini-preview');
+  if(wrap){
+    wrap.style.aspectRatio = ratioStr;
+  }
+  
+  // 비율 셀렉트박스도 "자동"으로 표시 (옵션 추가 후 선택)
+  const ratioSel = document.getElementById('image-ratio');
+  if(ratioSel){
+    // "자동" 옵션이 없으면 추가
+    let autoOpt = ratioSel.querySelector('option[value="auto-parent"]');
+    if(!autoOpt){
+      autoOpt = document.createElement('option');
+      autoOpt.value = 'auto-parent';
+      autoOpt.textContent = '🔗 부모 비율 자동';
+      ratioSel.insertBefore(autoOpt, ratioSel.firstChild);
+    }
+    autoOpt.textContent = `🔗 부모 비율 자동 (${ratio}:1)`;
+    ratioSel.value = 'auto-parent';
+  }
+  
+  console.log('[image-adjust] 부모 비율 자동 적용:', ratioStr, '→', ratio);
 }
 
 /**
@@ -2563,7 +2611,16 @@ function updateImageMiniPreview(){
 function updateImagePreviewRatio(){
   const wrap = document.getElementById('image-mini-preview');
   const ratio = document.getElementById('image-ratio').value;
-  wrap.style.aspectRatio = ratio === 'auto' ? '' : ratio;
+  
+  if(ratio === 'auto-parent'){
+    // 부모 비율 자동 → 다시 감지
+    const img = imageAdjustState.targetImg;
+    if(img) autoSetMiniPreviewRatio(img);
+  } else if(ratio === 'auto'){
+    wrap.style.aspectRatio = '';
+  } else {
+    wrap.style.aspectRatio = ratio;
+  }
   updateImageMiniPreview();
 }
 
