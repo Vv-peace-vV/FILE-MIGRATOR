@@ -2608,8 +2608,7 @@ function updateImageMiniPreview(){
   const objectFit = document.getElementById('image-objectfit').value;
   
     img.src = url;
-  img.style.cssText = `width:${scale}%;height:auto;object-fit:${objectFit};display:block;max-width:none;transform:translate(${x}%, ${y}%) rotate(${rotate}deg);transform-origin:center center`;
-
+  img.style.cssText = `position:absolute;left:50%;top:50%;width:${scale}%;height:${scale}%;min-width:100%;min-height:100%;object-fit:${objectFit};transform:translate(calc(-50% + ${x}%),calc(-50% + ${y}%)) rotate(${rotate}deg);display:block`;
 
 /**
  * 비율 변경 (미니 미리보기 영역만)
@@ -2700,64 +2699,75 @@ function applyImageAdjust(){
     img.setAttribute('src', url);
   }
   
-  // 스타일 변경 사항 모음 (selectedEditId가 img인 경우만 applyStyleToSelected 사용 가능)
-  // img가 자식이면 직접 setStyleProperty로 적용
-  const isDirectlySelected = (selectedEditId != null && img.dataset.editId === selectedEditId);
-  
-   // 부모 컨테이너 정보 가져오기 (높이 보존용)
+  // ⭐ 부모 컨테이너에 비율 자동 적용 (높이 0 방지!)
   const parent = img.parentElement;
-  const parentHeight = parent ? parent.getBoundingClientRect().height : 0;
-  const parentWidth = parent ? parent.getBoundingClientRect().width : 0;
-  
-  // 부모에 높이가 없으면 (높이 0) 비율 강제 적용
-  const parentNeedsRatio = parent && parentHeight < 10 && parentWidth > 0;
-  
-  const styleChanges = {
-    'width': scale + '%',
-    'height': 'auto',          // 자동 높이 (이미지 비율 유지)
-    'object-fit': objectFit,
-    'display': 'block',
-    'max-width': 'none',       // 100% 제한 풀기 (확대 가능하게)
-    'transform': `translate(${x}%, ${y}%) rotate(${rotate}deg)`,
-    'transform-origin': 'center center'
-  };
-  
-  // 위치/회전이 모두 0이면 transform 제거 (깔끔하게)
-  if(x === 0 && y === 0 && rotate === 0){
-    styleChanges['transform'] = '';
-    styleChanges['transform-origin'] = '';
-  }
-  
-  // 부모에 비율 강제 적용 (높이가 없으면)
-  if(parentNeedsRatio){
-    const ratio = (parentHeight / parentWidth * 100).toFixed(2);
-    // 부모에 padding-top 트릭으로 비율 부여 (이미 적용 안 됐을 때만)
-    if(!parent.style.aspectRatio && !parent.style.paddingTop){
-      console.log('[image-adjust] 부모에 비율 자동 적용:', ratio + '%');
+  if(parent){
+    const rect = parent.getBoundingClientRect();
+    const parentWidth = rect.width;
+    const parentHeight = rect.height;
+    
+    // 부모가 높이가 거의 0이거나, 명시적인 비율이 없으면 padding-top 트릭 적용
+    const parentStyle = parent.getAttribute('style') || '';
+    const hasRatio = /aspect-ratio|padding-top|height\s*:/.test(parentStyle);
+    
+    if(parentHeight < 10 || !hasRatio){
+      // 미니 미리보기에서 본 비율 사용 (이미 자동 감지된 값)
+      const wrap = document.getElementById('image-mini-preview');
+      const wrapPaddingTop = wrap ? wrap.style.paddingTop : '';
+      
+      if(wrapPaddingTop){
+        // 미니에서 쓴 padding-top 그대로 메인에도 적용
+        setStyleProperty(parent, {
+          'position': 'relative',
+          'height': '0',
+          'padding-top': wrapPaddingTop,
+          'overflow': 'hidden'
+        });
+        console.log('[image-adjust] 부모 컨테이너에 비율 적용:', wrapPaddingTop);
+      } else if(parentWidth > 0 && parentHeight > 10){
+        // 미니 값이 없으면 현재 비율 그대로
+        const ratio = (parentHeight / parentWidth * 100).toFixed(2);
+        setStyleProperty(parent, {
+          'position': 'relative',
+          'height': '0',
+          'padding-top': ratio + '%',
+          'overflow': 'hidden'
+        });
+        console.log('[image-adjust] 부모 컨테이너에 비율 적용 (현재값):', ratio + '%');
+      }
     }
   }
-
   
-  // 회전이나 위치가 0이면 transform에서 빼서 깔끔하게
+  const isDirectlySelected = (selectedEditId != null && img.dataset.editId === selectedEditId);
+  
+  // 이미지 스타일 (부모가 padding-top으로 비율 잡혀있으니 absolute 안전!)
+  const styleChanges = {
+    'position': 'absolute',
+    'left': '50%',
+    'top': '50%',
+    'width': scale + '%',
+    'height': scale + '%',
+    'min-width': '100%',
+    'min-height': '100%',
+    'object-fit': objectFit,
+    'transform': `translate(calc(-50% + ${x}%),calc(-50% + ${y}%)) rotate(${rotate}deg)`,
+    'display': 'block'
+  };
+  
+  // 회전 0이면 transform 단순화
+  if(rotate === 0){
+    styleChanges['transform'] = `translate(calc(-50% + ${x}%),calc(-50% + ${y}%))`;
+  }
+  // 모두 0이면 transform 제거
   if(x === 0 && y === 0 && rotate === 0){
     styleChanges['transform'] = '';
-    styleChanges['position'] = '';
-    styleChanges['left'] = '';
-    styleChanges['top'] = '';
-    styleChanges['min-width'] = '';
-    styleChanges['min-height'] = '';
-  } else if(rotate === 0){
-    styleChanges['transform'] = `translate(calc(-50% + ${x}%),calc(-50% + ${y}%))`;
   }
   
   if(isDirectlySelected){
-    // img가 직접 선택된 경우 → 기존 applyStyleToSelected 사용 (히스토리 자동)
     applyStyleToSelected(styleChanges);
   } else {
-    // img가 자식인 경우 → 직접 적용 + 수동 갱신
     setStyleProperty(img, styleChanges);
     
-    // convertedHTML / 코드창 / 카운터 갱신
     const iframe = document.getElementById('preview-frame');
     const newHTML = iframe.contentDocument.body.innerHTML;
     convertedHTML = newHTML.replace(/<script>[\s\S]*?<\/script>/g, '').trim();
@@ -2775,7 +2785,6 @@ function applyImageAdjust(){
     updateOutputCounter();
     convertedHTML = tempConverted;
     
-    // 부모 div가 선택된 거니까 부모의 applied list 갱신
     const iframeEl = iframe.contentDocument.querySelector('[data-edit-id="' + selectedEditId + '"]');
     if(iframeEl) updateAppliedList(iframeEl);
     
