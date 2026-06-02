@@ -575,7 +575,7 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
   
   <!-- 미니 미리보기 -->
   <div class="section-title">미니 미리보기</div>
-  <div id="image-mini-preview" style="width:100%;aspect-ratio:1/1;background:#f0f0f0;border:1px solid #ddd;border-radius:6px;position:relative;overflow:hidden">
+  <div id="image-mini-preview" style="width:100%;min-height:120px;background:#f0f0f0;border:1px solid #ddd;border-radius:6px;position:relative;overflow:hidden">
     <div id="image-mini-empty" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:#aaa;letter-spacing:2px">URL을 입력하세요</div>
   </div>
   
@@ -2548,11 +2548,17 @@ function autoSetMiniPreviewRatio(img){
   const ratio = (rect.width / rect.height).toFixed(3);
   const ratioStr = rect.width + ' / ' + rect.height;
   
-  // 미니 미리보기에 직접 비율 적용
+    // 미니 미리보기에 직접 비율 적용 (padding-top 트릭으로 강제)
   const wrap = document.getElementById('image-mini-preview');
   if(wrap){
-    wrap.style.aspectRatio = ratioStr;
+    // 비율 계산: 높이 / 너비 × 100 = padding-top %
+    const paddingPercent = (rect.height / rect.width * 100).toFixed(2);
+    wrap.style.aspectRatio = '';   // 기존 aspect-ratio 제거
+    wrap.style.height = '0';        // 높이는 0으로
+    wrap.style.paddingTop = paddingPercent + '%';  // padding으로 비율 강제
+    console.log('[image-adjust] padding-top 설정됨:', paddingPercent + '%');
   }
+
   
   // 비율 셀렉트박스도 "자동"으로 표시 (옵션 추가 후 선택)
   const ratioSel = document.getElementById('image-ratio');
@@ -2618,8 +2624,17 @@ function updateImagePreviewRatio(){
     if(img) autoSetMiniPreviewRatio(img);
   } else if(ratio === 'auto'){
     wrap.style.aspectRatio = '';
+    wrap.style.height = '';
+    wrap.style.paddingTop = '';
   } else {
-    wrap.style.aspectRatio = ratio;
+    // "1/1", "3/4" 같은 문자열 파싱해서 padding-top % 계산
+    const [w, h] = ratio.split('/').map(Number);
+    if(w && h){
+      const paddingPercent = (h / w * 100).toFixed(2);
+      wrap.style.aspectRatio = '';
+      wrap.style.height = '0';
+      wrap.style.paddingTop = paddingPercent + '%';
+    }
   }
   updateImageMiniPreview();
 }
