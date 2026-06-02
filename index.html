@@ -345,6 +345,9 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
           <button class="effect-btn" onclick="openSubPane('border')" disabled>
     <span class="effect-btn-icon">🔲</span>테두리
   </button>
+          <button class="effect-btn" onclick="openSubPane('image')" disabled>
+  <span class="effect-btn-icon">🖼️</span>이미지 조정
+</button>
 </div>
 
         <div class="section-title">⚙ 현재 적용된 효과</div>
@@ -552,6 +555,90 @@ body{font-family:'IBM Plex Sans KR',sans-serif;background:#f5f5f5;color:#222;hei
     <button class="btn-success" onclick="applyBorder()">✓ 테두리 적용</button>
     <button class="btn-success" onclick="removeBorder()" style="background:#ff8787">✗ 테두리 제거</button>
     <button class="btn-secondary" onclick="closeSubPane()">닫기</button>
+  </div>
+</div>
+<!-- 이미지 조정 세부 패널 -->
+<div class="editor-pane" id="pane-image">
+  <div class="sub-pane-header">
+    <button class="back-btn" onclick="closeSubPane()">← 뒤로</button>
+    <span class="sub-pane-title">🖼️ 이미지 조정</span>
+  </div>
+  
+  <!-- 대상 표시 -->
+  <div class="impact-info" id="image-target-info">💡 div 선택 시 자동으로 자식 img를 조정합니다</div>
+  
+  <!-- URL 입력 -->
+  <div class="field-row">
+    <span class="field-label">URL</span>
+    <input type="text" class="field-input" id="image-url" placeholder="https://..." style="font-family:'Share Tech Mono',monospace;font-size:10px">
+  </div>
+  
+  <!-- 미니 미리보기 -->
+  <div class="section-title">미니 미리보기</div>
+  <div id="image-mini-preview" style="width:100%;aspect-ratio:1/1;background:#f0f0f0;border:1px solid #ddd;border-radius:6px;position:relative;overflow:hidden">
+    <div id="image-mini-empty" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:#aaa;letter-spacing:2px">URL을 입력하세요</div>
+  </div>
+  
+  <!-- 비율 토글 -->
+  <div class="field-row">
+    <span class="field-label">비율</span>
+    <select class="field-select" id="image-ratio" onchange="updateImagePreviewRatio()">
+      <option value="1/1" selected>1:1 정사각형</option>
+      <option value="3/4">3:4 세로</option>
+      <option value="4/3">4:3 가로</option>
+      <option value="16/9">16:9 와이드</option>
+      <option value="auto">원본 비율</option>
+    </select>
+  </div>
+  
+  <!-- 위치 & 크기 -->
+  <div class="section-title">위치 & 크기</div>
+  
+  <div class="field-row">
+    <span class="field-label">↕ Y</span>
+    <input type="range" class="field-slider" id="image-pos-y" min="-100" max="100" value="0">
+    <input type="number" class="field-input" id="image-pos-y-num" value="0" style="width:55px;text-align:center">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#666">%</span>
+  </div>
+  
+  <div class="field-row">
+    <span class="field-label">↔ X</span>
+    <input type="range" class="field-slider" id="image-pos-x" min="-100" max="100" value="0">
+    <input type="number" class="field-input" id="image-pos-x-num" value="0" style="width:55px;text-align:center">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#666">%</span>
+  </div>
+  
+  <div class="field-row">
+    <span class="field-label">🔍 크기</span>
+    <input type="range" class="field-slider" id="image-scale" min="50" max="300" value="100">
+    <input type="number" class="field-input" id="image-scale-num" value="100" style="width:55px;text-align:center">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#666">%</span>
+  </div>
+  
+  <div class="field-row">
+    <span class="field-label">↻ 회전</span>
+    <input type="range" class="field-slider" id="image-rotate" min="-180" max="180" value="0">
+    <input type="number" class="field-input" id="image-rotate-num" value="0" style="width:55px;text-align:center">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#666">°</span>
+  </div>
+  
+  <!-- object-fit -->
+  <div class="field-row">
+    <span class="field-label">맞춤</span>
+    <select class="field-select" id="image-objectfit">
+      <option value="cover" selected>cover (꽉 채우기·잘림)</option>
+      <option value="contain">contain (전체 보이기)</option>
+      <option value="fill">fill (늘리기)</option>
+      <option value="none">none (원본 크기)</option>
+    </select>
+  </div>
+  
+  <div class="impact-info" id="image-impact">💡 슬라이더 조정 후 [메인에 적용]</div>
+  
+  <div class="action-pair">
+    <button class="btn-success" onclick="applyImageAdjust()">✓ 메인에 적용</button>
+    <button class="btn-secondary" onclick="resetImageAdjust()">↺ 초기화</button>
+    <button class="btn-secondary" onclick="closeSubPane()">✗ 닫기</button>
   </div>
 </div>
 
@@ -850,6 +937,9 @@ function openSubPane(name){
       initial:'#000000', alpha:0.1
     });
   }
+if(name === 'image'){
+  loadImageAdjustState();
+}
 }
 
 function closeSubPane(){
@@ -2332,6 +2422,300 @@ function removeBorder(){
   applyStyleToSelected(property, '');
   applyStyleToSelected({ [property]: '' });
 }
+  // ============================================================
+// 🖼️ 이미지 조정
+// ============================================================
+
+// 이미지 조정 상태 (미니 미리보기용)
+const imageAdjustState = {
+  targetImg: null,    // 조정 대상 <img> 요소 (iframe 안)
+  url: '',
+  posX: 0,
+  posY: 0,
+  scale: 100,
+  rotate: 0,
+  objectFit: 'cover'
+};
+
+/**
+ * 선택된 요소에서 조정 대상 img 찾기
+ * - selected가 <img>면 → 그대로
+ * - selected가 <div>면 → 첫 자식 <img> 자동 탐색
+ */
+function findTargetImg(){
+  if(selectedEditId == null) return null;
+  const iframe = document.getElementById('preview-frame');
+  const el = iframe.contentDocument.querySelector('[data-edit-id="' + selectedEditId + '"]');
+  if(!el) return null;
+  
+  if(el.tagName === 'IMG') return el;
+  // div면 자식 img 탐색
+  const childImg = el.querySelector('img');
+  return childImg || null;
+}
+
+/**
+ * 이미지 조정 패널 열 때 호출 (현재 img 상태 불러오기)
+ */
+function loadImageAdjustState(){
+  const img = findTargetImg();
+  const info = document.getElementById('image-target-info');
+  
+  if(!img){
+    info.textContent = '⚠ 선택된 요소에 이미지가 없어요. img를 직접 선택하거나, img를 포함한 div를 선택하세요.';
+    info.className = 'impact-info danger';
+    imageAdjustState.targetImg = null;
+    return false;
+  }
+  
+  // 현재 img의 스타일 파싱해서 슬라이더에 반영
+  imageAdjustState.targetImg = img;
+  imageAdjustState.url = img.getAttribute('src') || '';
+  
+  const map = parseInlineStyle(img.getAttribute('style') || '');
+  
+  // transform 파싱 (translate, scale, rotate)
+  let posX = 0, posY = 0, rotate = 0, scaleFromTransform = null;
+  const tf = map['transform'] || '';
+  
+  const tMatch = tf.match(/translate\([^)]*\)/);
+  if(tMatch){
+    // translate(calc(-50% + Xpx), calc(-50% + Ypx)) 패턴
+    const calcX = tMatch[0].match(/-50%\s*\+\s*(-?[\d.]+)%/);
+    const calcY = tMatch[0].match(/-50%\s*\+\s*(-?[\d.]+)%.*?\)\s*$/);
+    // 더 단순한 패턴도 시도
+    const xMatch = tMatch[0].match(/translate\(\s*(-?[\d.]+)%/);
+    const yMatch = tMatch[0].match(/,\s*(-?[\d.]+)%/);
+    if(calcX) posX = parseFloat(calcX[1]);
+    if(calcY) posY = parseFloat(calcY[1]);
+  }
+  const rMatch = tf.match(/rotate\(\s*(-?[\d.]+)deg/);
+  if(rMatch) rotate = parseFloat(rMatch[1]);
+  
+  // width로 scale 파악 (100%면 100, 200%면 200)
+  let scale = 100;
+  const w = map['width'];
+  if(w && /^\d+%$/.test(w)){
+    scale = parseInt(w);
+  }
+  
+  imageAdjustState.posX = posX;
+  imageAdjustState.posY = posY;
+  imageAdjustState.scale = scale;
+  imageAdjustState.rotate = rotate;
+  imageAdjustState.objectFit = map['object-fit'] || 'cover';
+  
+  // UI에 반영
+  document.getElementById('image-url').value = imageAdjustState.url;
+  document.getElementById('image-pos-x').value = posX;
+  document.getElementById('image-pos-x-num').value = posX;
+  document.getElementById('image-pos-y').value = posY;
+  document.getElementById('image-pos-y-num').value = posY;
+  document.getElementById('image-scale').value = scale;
+  document.getElementById('image-scale-num').value = scale;
+  document.getElementById('image-rotate').value = rotate;
+  document.getElementById('image-rotate-num').value = rotate;
+  document.getElementById('image-objectfit').value = imageAdjustState.objectFit;
+  
+  info.textContent = '✓ 대상: <img> · ' + (img.src.length > 40 ? img.src.slice(0, 40) + '...' : img.src);
+  info.className = 'impact-info';
+  
+  updateImageMiniPreview();
+  return true;
+}
+
+/**
+ * 미니 미리보기 갱신 (슬라이더 즉시 반영)
+ */
+function updateImageMiniPreview(){
+  const wrap = document.getElementById('image-mini-preview');
+  const empty = document.getElementById('image-mini-empty');
+  const url = document.getElementById('image-url').value.trim();
+  
+  if(!url){
+    if(empty) empty.style.display = 'flex';
+    const oldImg = wrap.querySelector('img');
+    if(oldImg) oldImg.remove();
+    return;
+  }
+  
+  if(empty) empty.style.display = 'none';
+  let img = wrap.querySelector('img');
+  if(!img){
+    img = document.createElement('img');
+    img.style.display = 'block';
+    wrap.appendChild(img);
+  }
+  
+  const x = parseFloat(document.getElementById('image-pos-x').value);
+  const y = parseFloat(document.getElementById('image-pos-y').value);
+  const scale = parseFloat(document.getElementById('image-scale').value);
+  const rotate = parseFloat(document.getElementById('image-rotate').value);
+  const objectFit = document.getElementById('image-objectfit').value;
+  
+  img.src = url;
+  img.style.cssText = `position:absolute;left:50%;top:50%;width:${scale}%;height:${scale}%;min-width:100%;min-height:100%;object-fit:${objectFit};transform:translate(calc(-50% + ${x}%),calc(-50% + ${y}%)) rotate(${rotate}deg);display:block`;
+}
+
+/**
+ * 비율 변경 (미니 미리보기 영역만)
+ */
+function updateImagePreviewRatio(){
+  const wrap = document.getElementById('image-mini-preview');
+  const ratio = document.getElementById('image-ratio').value;
+  wrap.style.aspectRatio = ratio === 'auto' ? '' : ratio;
+  updateImageMiniPreview();
+}
+
+/**
+ * 슬라이더 ↔ 숫자 입력 동기화 + 미니 미리보기 갱신
+ */
+function bindImageSliders(){
+  const pairs = [
+    ['image-pos-x', 'image-pos-x-num'],
+    ['image-pos-y', 'image-pos-y-num'],
+    ['image-scale', 'image-scale-num'],
+    ['image-rotate', 'image-rotate-num']
+  ];
+  
+  pairs.forEach(([sliderId, numId]) => {
+    const slider = document.getElementById(sliderId);
+    const num = document.getElementById(numId);
+    if(!slider || !num) return;
+    
+    slider.addEventListener('input', () => {
+      num.value = slider.value;
+      updateImageMiniPreview();
+    });
+    num.addEventListener('input', () => {
+      slider.value = num.value;
+      updateImageMiniPreview();
+    });
+  });
+  
+  // URL 입력 변화 감지
+  const urlInput = document.getElementById('image-url');
+  if(urlInput){
+    urlInput.addEventListener('input', updateImageMiniPreview);
+  }
+  
+  // object-fit 변경
+  const ofSel = document.getElementById('image-objectfit');
+  if(ofSel){
+    ofSel.addEventListener('change', updateImageMiniPreview);
+  }
+}
+
+/**
+ * 메인에 적용 (실제 iframe 안 img에 반영 + 히스토리 1번)
+ */
+function applyImageAdjust(){
+  const img = imageAdjustState.targetImg;
+  if(!img){
+    showToast('조정할 이미지가 없어요');
+    return;
+  }
+  
+  const x = parseFloat(document.getElementById('image-pos-x').value);
+  const y = parseFloat(document.getElementById('image-pos-y').value);
+  const scale = parseFloat(document.getElementById('image-scale').value);
+  const rotate = parseFloat(document.getElementById('image-rotate').value);
+  const objectFit = document.getElementById('image-objectfit').value;
+  const url = document.getElementById('image-url').value.trim();
+  
+  // URL 바뀌었으면 src도 갱신
+  if(url && url !== img.getAttribute('src')){
+    img.setAttribute('src', url);
+  }
+  
+  // 스타일 변경 사항 모음 (selectedEditId가 img인 경우만 applyStyleToSelected 사용 가능)
+  // img가 자식이면 직접 setStyleProperty로 적용
+  const isDirectlySelected = (selectedEditId != null && img.dataset.editId === selectedEditId);
+  
+  const styleChanges = {
+    'position': 'absolute',
+    'left': '50%',
+    'top': '50%',
+    'width': scale + '%',
+    'height': scale + '%',
+    'min-width': '100%',
+    'min-height': '100%',
+    'object-fit': objectFit,
+    'transform': `translate(calc(-50% + ${x}%),calc(-50% + ${y}%)) rotate(${rotate}deg)`,
+    'display': 'block'
+  };
+  
+  // 회전이나 위치가 0이면 transform에서 빼서 깔끔하게
+  if(x === 0 && y === 0 && rotate === 0){
+    styleChanges['transform'] = '';
+    styleChanges['position'] = '';
+    styleChanges['left'] = '';
+    styleChanges['top'] = '';
+    styleChanges['min-width'] = '';
+    styleChanges['min-height'] = '';
+  } else if(rotate === 0){
+    styleChanges['transform'] = `translate(calc(-50% + ${x}%),calc(-50% + ${y}%))`;
+  }
+  
+  if(isDirectlySelected){
+    // img가 직접 선택된 경우 → 기존 applyStyleToSelected 사용 (히스토리 자동)
+    applyStyleToSelected(styleChanges);
+  } else {
+    // img가 자식인 경우 → 직접 적용 + 수동 갱신
+    setStyleProperty(img, styleChanges);
+    
+    // convertedHTML / 코드창 / 카운터 갱신
+    const iframe = document.getElementById('preview-frame');
+    const newHTML = iframe.contentDocument.body.innerHTML;
+    convertedHTML = newHTML.replace(/<script>[\s\S]*?<\/script>/g, '').trim();
+    
+    const codeEl = document.getElementById('output-code');
+    const oldText = codeEl.dataset.original || codeEl.textContent;
+    const headerMatch = oldText.match(/^\/\*[\s\S]*?\*\/\n*/);
+    const header = headerMatch ? headerMatch[0] : '';
+    const cleanLength = stripEditIds(convertedHTML).length;
+    const newHeader = header.replace(/(\* 최종 글자 수: )[\d,]+( chars)/, '$1' + cleanLength.toLocaleString() + '$2');
+    codeEl.dataset.original = newHeader + convertedHTML;
+    
+    const tempConverted = convertedHTML;
+    convertedHTML = stripEditIds(tempConverted);
+    updateOutputCounter();
+    convertedHTML = tempConverted;
+    
+    // 부모 div가 선택된 거니까 부모의 applied list 갱신
+    const iframeEl = iframe.contentDocument.querySelector('[data-edit-id="' + selectedEditId + '"]');
+    if(iframeEl) updateAppliedList(iframeEl);
+    
+    highlightInCode(selectedEditId);
+    pushHistory();
+    autoSave();
+  }
+  
+  showToast('이미지 조정 적용!');
+}
+
+/**
+ * 초기화 (슬라이더 0으로)
+ */
+function resetImageAdjust(){
+  document.getElementById('image-pos-x').value = 0;
+  document.getElementById('image-pos-x-num').value = 0;
+  document.getElementById('image-pos-y').value = 0;
+  document.getElementById('image-pos-y-num').value = 0;
+  document.getElementById('image-scale').value = 100;
+  document.getElementById('image-scale-num').value = 100;
+  document.getElementById('image-rotate').value = 0;
+  document.getElementById('image-rotate-num').value = 0;
+  document.getElementById('image-objectfit').value = 'cover';
+  updateImageMiniPreview();
+  showToast('초기화됨');
+}
+
+// DOMContentLoaded 후 슬라이더 바인딩
+document.addEventListener('DOMContentLoaded', () => {
+  bindImageSliders();
+});
+
 // ============================================================
 // ⚡ 단색 배경 (background) 적용
 // ============================================================
